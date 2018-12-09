@@ -24,6 +24,10 @@
 #define VIN_LEN 17
 #define MAC_ADDR_SIZE 6
 
+#define KO_WF_INIT_RQ_SP 21
+#define KO_WF_VIN_INFO_EVR 21
+#define KO_WF_START_AA_EVR 170
+
 /*
 enum commands_t  {
     PING_SEND_CMD = 0xf9, 
@@ -45,35 +49,35 @@ typedef struct phevMessage_t
     uint8_t checksum;
 } phevMessage_t;
 
-phevMessage_t * phev_core_createMessage(uint8_t command, uint8_t type, uint8_t reg, uint8_t * data, size_t length);
+phevMessage_t * phev_core_createMessage(const uint8_t command, const uint8_t type, const uint8_t reg, const uint8_t * data, const size_t length);
 
 void phev_core_destroyMessage(phevMessage_t * message);
 
-int phev_core_decodeMessage(const uint8_t *data, size_t len, phevMessage_t *message);
+int phev_core_decodeMessage(const uint8_t *data, const size_t len, phevMessage_t *message);
 
 int phev_core_encodeMessage(phevMessage_t *message,uint8_t **data);
 
-message_t * phev_core_extractMessage(const uint8_t *data, size_t len);
+message_t * phev_core_extractMessage(const uint8_t *data, const size_t len);
 
-phevMessage_t *phev_core_requestMessage(uint8_t command, uint8_t reg, uint8_t *data, size_t length);
+phevMessage_t *phev_core_requestMessage(const uint8_t command, const uint8_t reg, const uint8_t *data, const size_t length);
 
-phevMessage_t *phev_core_responseMessage(uint8_t command, uint8_t reg, uint8_t *data, size_t length);
+phevMessage_t *phev_core_responseMessage(const uint8_t command, const uint8_t reg, const uint8_t *data, const size_t length);
 
-phevMessage_t *phev_core_simpleResponseCommandMessage(uint8_t reg, uint8_t value);
+phevMessage_t *phev_core_simpleResponseCommandMessage(const uint8_t reg, const uint8_t value);
 
-phevMessage_t *phev_core_simpleRequestCommandMessage(uint8_t reg, uint8_t value);
+phevMessage_t *phev_core_simpleRequestCommandMessage(const uint8_t reg, const uint8_t value);
 
-phevMessage_t *phev_core_simpleResponseCommandMessage(uint8_t reg, uint8_t value);
+phevMessage_t *phev_core_simpleResponseCommandMessage(const uint8_t reg, const uint8_t value);
 
-phevMessage_t *phev_core_commandMessage(uint8_t reg, uint8_t *data, size_t length);
+phevMessage_t *phev_core_commandMessage(const uint8_t reg, const uint8_t *data, const size_t length);
 
-phevMessage_t *phev_core_ackMessage(uint8_t command, uint8_t reg);
+phevMessage_t *phev_core_ackMessage(const uint8_t command, const uint8_t reg);
 
-phevMessage_t *phev_core_startMessage(uint8_t *mac);
+phevMessage_t *phev_core_startMessage(const uint8_t *mac);
 
-message_t *phev_core_startMessageEncoded(uint8_t *mac);
+message_t *phev_core_startMessageEncoded(const uint8_t *mac);
 
-phevMessage_t *phev_core_pingMessage(uint8_t number);
+phevMessage_t *phev_core_pingMessage(const uint8_t number);
 
 phevMessage_t *phev_core_responseHandler(phevMessage_t * message);
 

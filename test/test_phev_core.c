@@ -34,7 +34,7 @@ void test_split_message_single_correct_size(void)
 
     int ret = phev_core_decodeMessage(singleMessage, sizeof(singleMessage), &msg);
 
-    TEST_ASSERT_EQUAL(12, ret);
+    TEST_ASSERT_EQUAL(1, ret);
 }
 
 void test_split_message_single_correct_command(void)
@@ -51,7 +51,7 @@ void test_split_message_single_correct_length(void)
 
     int ret = phev_core_decodeMessage(singleMessage, sizeof(singleMessage), &msg);
 
-    TEST_ASSERT_EQUAL(0x0a, msg.length);
+    TEST_ASSERT_EQUAL(7, msg.length);
 } 
 void test_split_message_single_correct_type(void)
 {
@@ -96,7 +96,7 @@ void test_split_message_double_decode(void)
 
     ret = phev_core_decodeMessage(doubleMessage + ret, sizeof(doubleMessage) - ret, &msg);
 
-    TEST_ASSERT_EQUAL(0x13, msg.reg);
+    TEST_ASSERT_EQUAL(0x12, msg.reg);
 } 
 void test_encode_message_single(void)
 {
@@ -263,4 +263,31 @@ void test_phev_head_lights_on_message(void)
     phevMessage_t * headLightsOn = phev_core_simpleRequestCommandMessage(0x0a, 1);
     
     TEST_ASSERT_EQUAL(1, headLightsOn->data[0]);
+}
+void test_phev_mac_response(void)
+{
+    uint8_t message[] = {0x2f,0x04,0x01,0x01,0x00,0x35};
+    phevMessage_t phevMsg;
+
+    phev_core_decodeMessage(message, sizeof(message), &phevMsg);
+
+    TEST_ASSERT_EQUAL(START_RESP, phevMsg.command);
+    TEST_ASSERT_EQUAL(1, phevMsg.length);
+    TEST_ASSERT_EQUAL(RESPONSE_TYPE, phevMsg.type);
+    TEST_ASSERT_EQUAL(1, phevMsg.reg);
+    TEST_ASSERT_EQUAL(0, *phevMsg.data);
+
+}
+void test_phev_message_to_phev_message_and_back(void)
+{
+     uint8_t message[] = {0x2f,0x04,0x01,0x01,0x00,0x35};
+
+     phevMessage_t phevMsg;
+
+     phev_core_decodeMessage(message, sizeof(message), &phevMsg);
+
+     message_t * msg = phev_core_convertToMessage(&phevMsg);
+
+     TEST_ASSERT_EQUAL_HEX8_ARRAY(message, msg->data, sizeof(message));
+    
 }

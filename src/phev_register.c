@@ -46,8 +46,8 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             phev_register_sendMac(ctx);
             break;
         }
-        case PHEV_PIPE_MAC_ACK: {
-            phev_register_sendRegister(ctx);
+        case PHEV_PIPE_AA_ACK: {
+            //phev_register_sendRegister(ctx);
             break;
         }
         default : {

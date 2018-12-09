@@ -36,16 +36,20 @@ int main()
     RUN_TEST(test_phev_ack_message); 
     RUN_TEST(test_phev_head_lights_on);
     RUN_TEST(test_phev_head_lights_on_message);
+    RUN_TEST(test_phev_mac_response);
+    RUN_TEST(test_phev_message_to_phev_message_and_back);
 
 //  PHEV_REGISTER
 
     RUN_TEST(test_phev_register_bootstrap);
     RUN_TEST(test_phev_register_getVin);
     RUN_TEST(test_phev_register_should_send_mac_and_aa);
+    RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
 
 //  PHEV PIPE
     
     RUN_TEST(test_phev_pipe_createPipe);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
+
     return UNITY_END();
 }

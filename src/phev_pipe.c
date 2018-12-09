@@ -1,4 +1,5 @@
 #include "phev_pipe.h"
+#include "phev_core.h"
 #include "logger.h"
 
 const static char * APP_TAG = "PHEV_PIPE";
@@ -60,6 +61,9 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
         
         return NULL;
     }
+
+    LOG_D(APP_TAG,"Register %d Length %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
+    LOG_BUFFER_HEXDUMP(APP_TAG,phevMessage->data,phevMessage->length,LOG_DEBUG);
     message_t * ret = phev_core_convertToMessage(phevMessage);
 
     phev_core_destroyMessage(phevMessage);
@@ -68,30 +72,110 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
     
     return ret;
 }
+message_t * phev_pipe_command_responder(void * ctx, message_t * message)
+{
+    LOG_V(APP_TAG,"START - responder");
+    
+    message_t * out = NULL;
 
-void phev_pipe_sendEvent(void * ctx, phevPipeEvent_t * event)
+    if(message != NULL) {
+
+        phevMessage_t phevMsg;
+
+        phev_core_decodeMessage(message->data, message->length, &phevMsg);
+
+        if(phevMsg.type == REQUEST_TYPE) 
+        {
+            phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
+            out = phev_core_convertToMessage(msg);
+            phev_core_destroyMessage(msg);
+        }
+        free(phevMsg.data);
+    }
+    LOG_V(APP_TAG,"END - commandResponder");
+    return out;
+}
+
+phevPipeEvent_t * phev_pipe_createVINEvent(uint8_t * data)
+{
+    LOG_V(APP_TAG,"START - createVINEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_GOT_VIN,
+    event->data =  malloc(VIN_LEN + 1);
+    event->length = VIN_LEN + 1;
+    event->data[VIN_LEN]  = 0;
+    memcpy(event->data, data + 1, VIN_LEN);
+
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    LOG_BUFFER_HEXDUMP(APP_TAG,event->data,event->length,LOG_DEBUG);
+    LOG_V(APP_TAG,"END - createVINEvent");
+    
+    return event;
+}
+
+phevPipeEvent_t * phev_pipe_AAResponseEvent(void)
+{
+    LOG_V(APP_TAG,"START - AAResponseEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_AA_ACK,
+    event->data =  NULL;
+    event->length = 0;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - AAResponseEvent");
+    
+    return event;
+
+}
+phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t * phevMessage)
+{
+    LOG_V(APP_TAG,"START - messageToEvent");
+    LOG_D(APP_TAG,"Reg %d Len %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
+    phevPipeEvent_t * event = NULL;
+
+    switch(phevMessage->reg)
+    {
+        case KO_WF_VIN_INFO_EVR: {
+            event = phev_pipe_createVINEvent(phevMessage->data);
+            break;
+        }
+        case KO_WF_START_AA_EVR: {
+            if(phevMessage->type == RESPONSE_TYPE)
+            {
+                event = phev_pipe_AAResponseEvent();
+            }
+            break;
+        }
+        default: {
+            LOG_E(APP_TAG,"Register not handled");
+        }
+    }
+    
+    LOG_V(APP_TAG,"END - messageToEvent");
+    return event;
+}
+void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
 {
     LOG_V(APP_TAG,"START - sendEvent");
+    
     phev_pipe_ctx_t * phevCtx = (phev_pipe_ctx_t *) ctx;
 
     if(phevCtx->eventHandler != NULL)
     {
-        phevPipeEvent_t * evt = malloc(sizeof(phevPipeEvent_t));
+        phevPipeEvent_t * evt = phev_pipe_messageToEvent(phevCtx,phevMessage);
         
-        evt->event = event->event;
-        evt->data =  malloc(VIN_LEN + 1);
-        evt->length = VIN_LEN + 1;
-
-        memcpy(evt->data, event->data + 1, VIN_LEN);
-        
-        evt->data[VIN_LEN]  = 0;
-
-        phevCtx->eventHandler(phevCtx, evt);
+        if(evt != NULL)
+        {
+            LOG_D(APP_TAG,"Sending event ID %d",evt->event);
+            phevCtx->eventHandler(phevCtx, evt);    
+        } else {
+            LOG_D(APP_TAG,"Not sending event");
+        }
     }
     
     LOG_V(APP_TAG,"END - sendEvent");
-    
-    //printf()
 }
 message_t * phev_pipe_outputEventTransformer(void * ctx, message_t * message)
 {
@@ -108,16 +192,8 @@ message_t * phev_pipe_outputEventTransformer(void * ctx, message_t * message)
         return NULL;
     }
     
-    uint8_t * data = malloc(phevMessage->length);
-    memcpy(data, phevMessage->data,phevMessage->length); 
-    phevPipeEvent_t event = {
-        .event = PHEV_PIPE_GOT_VIN,
-        .data = data,
-        .length = phevMessage->length,
-    };
-    
-    phev_pipe_sendEvent(ctx, &event);
-    
+    phev_pipe_sendEvent(ctx, phevMessage);
+        
     message_t * ret = phev_core_convertToMessage(phevMessage);
 
     phev_core_destroyMessage(phevMessage);

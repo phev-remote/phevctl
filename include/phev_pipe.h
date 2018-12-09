@@ -7,7 +7,7 @@
 
 enum {
     PHEV_PIPE_GOT_VIN,
-    PHEV_PIPE_MAC_ACK,
+    PHEV_PIPE_AA_ACK,
 };
 
 typedef struct phevPipeEvent_t 
@@ -45,7 +45,7 @@ message_t * phev_pipe_outputChainInputTransformer(void *, message_t *);
 message_t * phev_pipe_outputEventTransformer(void *, message_t *);
 void phev_pipe_registerEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
 void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
-
+message_t * phev_pipe_command_responder(void *, message_t *);
 //void phev_pipe_sendCommand(phev_core_command_t);
 
 #endif
