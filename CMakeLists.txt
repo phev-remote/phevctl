@@ -20,4 +20,7 @@ target_include_directories(phev_register PUBLIC include)
 
 add_executable(app main.c)
 
-target_link_libraries (app LINK_PUBLIC phev_register)
+target_link_libraries (app LINK_PUBLIC 
+    msg_core
+    phev_register
+)

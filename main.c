@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -6,7 +7,15 @@
 #include <time.h>
 #include "phev_register.h"
 #include "msg_tcpip.h"
+#include "logger.h"
 
+
+#define TCP_READ read
+#define TCP_WRITE write
+#define TCP_CONNECT connect
+#define TCP_SOCKET socket
+#define TCP_HTONS htons
+#define TCP_READ_TIMEOUT 1000
 const static char * APP_TAG = "MAIN";
 
 int tcp_client_connectSocket(const char *host, uint16_t port); 
@@ -80,7 +89,7 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
   
     LOG_I(APP_TAG,"Connected to host %s port %d",host,port);
     
-    global_sock = sock;
+    //global_sock = sock;
     LOG_V(APP_TAG,"END - connectSocket");
     
     return sock;
@@ -93,7 +102,7 @@ int tcp_client_read(int soc, uint8_t * buf, size_t len)
     int num = tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
 
     LOG_D(APP_TAG,"Read %d bytes from tcp stream", num);
-    LOG_BUFFER_HEXDUMP(APP_TAG,buf, num,LOG_DEBUG);
+    LOG_BUFFER_HEXDUMP(APP_TAG,buf, num,0);
     
     
     LOG_V(APP_TAG,"END - read");
@@ -142,6 +151,8 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
+	.host = "192.168.8.46",
+	.port = 8080,
     };
          
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
@@ -165,6 +176,6 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
 
 int main()
 {
-
+    
     return 0;
 }
