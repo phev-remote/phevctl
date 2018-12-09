@@ -17,3 +17,7 @@ target_include_directories(msg_core PUBLIC msg_core/include)
 add_subdirectory(test)
 
 target_include_directories(phev_register PUBLIC include)
+
+add_executable(app main.c)
+
+target_link_libraries (app LINK_PUBLIC phev_register)
