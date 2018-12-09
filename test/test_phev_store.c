@@ -1,11 +1,6 @@
 #include "unity.h"
 #include "phev_store.h"
-#include "mock_logger.h"
-
-void setUp(void)
-{
-    hexdump_Ignore();
-}
+#include "logger.h"
 
 void test_create_store(void)
 {

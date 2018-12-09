@@ -6,11 +6,17 @@
 #include "msg_utils.h"
 #include "phev_pipe.h"
 
+static message_t * test_phev_register_messages[10];
+static message_t * test_phev_register_inHandlerSend = NULL;
+static int test_phev_register_index = 0;
+
 uint8_t startMsg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3 };
 
 void test_phev_register_outHandlerIn(messagingClient_t *client, message_t *message) 
 {
-    printf("Out in handler got message %s\n",message->data);
+    //printf("Out in handler got message %s\n",message->data);
+    hexdump("TEST-out-in",message->data,message->length,0);
+    test_phev_register_messages[test_phev_register_index++] = msg_utils_copyMsg(message);
     return;
 }
 
@@ -24,15 +30,22 @@ message_t * test_phev_register_inHandlerIn(messagingClient_t *client)
 }
 void test_phev_register_outHandlerOut(messagingClient_t *client, message_t *message) 
 {
-    printf("Out out handler got message %s\n",message->data);
+    //printf("Out out handler got message %s\n",message->data);
+    hexdump("TEST-out-out",message->data,message->length,0);
+    
+    test_phev_register_messages[test_phev_register_index++] = msg_utils_copyMsg(message);
     return;
 }
 
 message_t * test_phev_register_inHandlerOut(messagingClient_t *client) 
 {
-    message_t * message = msg_utils_createMsg(startMsg,sizeof(startMsg));
+    if(test_phev_register_inHandlerSend != NULL)
+    {
+        message_t * message = test_phev_register_inHandlerSend;
+        return message;    
+    }
     
-    return message;
+    return NULL;
 }
 message_t * mock_outputInputTransformer(void *ctx, message_t *message)
 {
@@ -56,6 +69,7 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
     messagingClient_t * out = msg_core_createMessagingClient(outSettings);
 
     phev_pipe_settings_t settings = {
+        .ctx = NULL,
         .in = in,
         .out = out,
         .inputSplitter = NULL,
@@ -91,7 +105,7 @@ int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * ev
     {
         case PHEV_PIPE_GOT_VIN: {
             vin = strdup(event->data);
-            printf("Got vin %s\n",vin);
+            //printf("Got vin %s\n",vin);
             break;
         }
         default : {
@@ -111,14 +125,18 @@ void test_phev_register_getVin(void)
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    ctx->pipe->pipe->out->publish(ctx->pipe->pipe->out,msg_utils_createMsg(startMsg,sizeof(startMsg)));
+    test_phev_register_inHandlerSend = msg_utils_createMsg(startMsg,sizeof(startMsg));
 
     msg_pipe_loop(ctx->pipe->pipe);
 
     TEST_ASSERT_EQUAL_STRING("JMAXDGG2WGZ002035",vin);
+    test_phev_register_inHandlerSend = NULL;
 }
-void test_phev_register_sendRegister_called_when_vin_received(void)
+void test_phev_register_should_send_mac_and_aa(void)
 {
+    test_phev_register_index = 0;
+    const uint8_t expected[] = {0xf2,0x0a,0x00,0x01,0x2f,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xd3,0xf6,0x04,0x00,0xaa,0x00,0xa4};
+    const uint8_t mac[] = {0x2f,0x0d,0xc2,0xc2,0x91,0x85};
     phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
     
     phevRegisterSettings_t settings = {
@@ -126,11 +144,19 @@ void test_phev_register_sendRegister_called_when_vin_received(void)
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
     };
     
+    memcpy(settings.mac,mac,MAC_ADDR_SIZE);
+
     phevRegisterCtx_t * ctx = phev_register_init(settings);
 
-    ctx->pipe->pipe->out->publish(ctx->pipe->pipe->out,msg_utils_createMsg(startMsg,sizeof(startMsg)));
+    phevPipeEvent_t event = {
+        .event = PHEV_PIPE_GOT_VIN,
+        .data = "JMAXDGG2WGZ002035",
+        .length = 17,
+    };
+    
+    phev_register_eventHandler(pipe ,&event);
 
-    msg_pipe_loop(ctx->pipe->pipe);
-
-    TEST_ASSERT_EQUAL_STRING("JMAXDGG2WGZ002035",vin);
-}
+    TEST_ASSERT_NOT_NULL(test_phev_register_messages[0]);
+    TEST_ASSERT_EQUAL_MEMORY(expected,test_phev_register_messages[0]->data,sizeof(expected));
+    
+} 

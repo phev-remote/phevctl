@@ -175,16 +175,16 @@ phevMessage_t *phev_core_ackMessage(uint8_t command, uint8_t reg)
     const uint8_t data = 0;
     return phev_core_responseMessage(command, reg, &data, 1);
 }
-phevMessage_t *phev_core_startMessage(uint8_t pos, uint8_t *mac)
+phevMessage_t *phev_core_startMessage(uint8_t *mac)
 {
     uint8_t * data = malloc(7);
-    data[0] = pos;
-    memcpy(data + 1,mac, 6);
+    data[6] = 0;
+    memcpy(data,mac, 6);
     return phev_core_requestMessage(START_SEND, 0x01, data, 7);
 }
-message_t *phev_core_startMessageEncoded(uint8_t pos, uint8_t *mac)
+message_t *phev_core_startMessageEncoded(uint8_t *mac)
 {
-    phevMessage_t * start = phev_core_startMessage(pos, mac);
+    phevMessage_t * start = phev_core_startMessage(mac);
     phevMessage_t * startaa = phev_core_simpleRequestCommandMessage(0xaa,0);
     message_t * message = msg_utils_concatMessages(
                                     phev_core_convertToMessage(start),

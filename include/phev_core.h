@@ -22,6 +22,7 @@
 #define RESP_CMD 0x6f
 
 #define VIN_LEN 17
+#define MAC_ADDR_SIZE 6
 
 /*
 enum commands_t  {
@@ -68,9 +69,9 @@ phevMessage_t *phev_core_commandMessage(uint8_t reg, uint8_t *data, size_t lengt
 
 phevMessage_t *phev_core_ackMessage(uint8_t command, uint8_t reg);
 
-phevMessage_t *phev_core_startMessage(uint8_t pos, uint8_t *mac);
+phevMessage_t *phev_core_startMessage(uint8_t *mac);
 
-message_t *phev_core_startMessageEncoded(uint8_t pos, uint8_t *mac);
+message_t *phev_core_startMessageEncoded(uint8_t *mac);
 
 phevMessage_t *phev_core_pingMessage(uint8_t number);
 

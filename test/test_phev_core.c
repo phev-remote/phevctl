@@ -112,7 +112,7 @@ void test_encode_message_single_checksum(void)
 {
     uint8_t data[] = {0x00};
 
-    phevMessage_t  * msg = phev_core_createMessage(0x6f, RESPONSE_TYPE, 0xaa, &data, 1);
+    phevMessage_t  * msg = phev_core_createMessage(0x6f, RESPONSE_TYPE, 0xaa, data, 1);
     
     uint8_t * out;
     int num = phev_core_encodeMessage(msg, &out);
@@ -140,9 +140,9 @@ void test_simple_command_response_message(void)
 } 
 void test_command_message(void)
 {
-    const uint8_t data[] = {0, 1, 2, 3, 4, 5};
+    uint8_t data[] = {0, 1, 2, 3, 4, 5};
 
-    phevMessage_t *msg = phev_core_commandMessage(0x10, &data, sizeof(data));
+    phevMessage_t *msg = phev_core_commandMessage(0x10, data, sizeof(data));
 
     TEST_ASSERT_EQUAL(0xf6, msg->command);
     TEST_ASSERT_EQUAL(0x6, msg->length);
@@ -163,10 +163,10 @@ void test_ack_message(void)
 } 
 void test_start_message(void)
 {
-    const uint8_t mac[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-    const uint8_t expected[] = {0x02, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+    uint8_t mac[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+    const uint8_t expected[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,0x00};
     
-    const phevMessage_t *msg = phev_core_startMessage(2,mac);
+    phevMessage_t *msg = phev_core_startMessage(mac);
 
     TEST_ASSERT_NOT_NULL(msg);
     TEST_ASSERT_EQUAL(START_SEND, msg->command);
@@ -177,17 +177,11 @@ void test_start_message(void)
 } 
 void test_start_encoded_message(void)
 {
-    const uint8_t mac[] = {0,0,0,0,0,0};
-    const uint8_t expected[] = {0xf2, 0x0a, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 
+    uint8_t mac[] = {0,0,0,0,0,0};
+    uint8_t expected[] = {0xf2, 0x0a, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfd, 
         0xf6, 0x04, 0x00, 0xaa, 0x00, 0xa4};
 
-    message_t * expectedMessage = malloc(sizeof(message_t));
-    expectedMessage->data = malloc(sizeof(expected));
-    memcpy(expectedMessage->data, expected,sizeof(expected));
-    expectedMessage->length = sizeof(expected);
-
-    msg_utils_concatMessages_IgnoreAndReturn(expectedMessage);
-    const message_t *message = phev_core_startMessageEncoded(2,&mac);
+    message_t *message = phev_core_startMessageEncoded(mac);
 
     TEST_ASSERT_NOT_NULL(message);
     TEST_ASSERT_EQUAL(18, message->length);
@@ -197,7 +191,7 @@ void test_ping_message(void)
 {
     const uint8_t num = 1;
 
-    const phevMessage_t * msg = phev_core_pingMessage(num);
+    phevMessage_t * msg = phev_core_pingMessage(num);
 
     TEST_ASSERT_EQUAL(PING_SEND_CMD, msg->command);
     TEST_ASSERT_EQUAL(0x01, msg->length);
@@ -207,7 +201,7 @@ void test_ping_message(void)
 }
 void test_response_handler_start(void)
 {
-    const uint8_t value = 0;
+    uint8_t value = 0;
     phevMessage_t request = {
         .command = RESP_CMD,
         .length = 4,
@@ -231,8 +225,8 @@ void test_calc_checksum(void)
 } 
 void test_phev_message_to_message(void)
 {
-    const phevMessage_t * phevMsg = phev_core_simpleRequestCommandMessage(0xaa, 0x00);
-    const uint8_t expected[] = {0xf6,0x04,0x00,0xaa,0x00,0xa4};
+    phevMessage_t * phevMsg = phev_core_simpleRequestCommandMessage(0xaa, 0x00);
+    int8_t expected[] = {0xf6,0x04,0x00,0xaa,0x00,0xa4};
     
     message_t * message = phev_core_convertToMessage(phevMsg);
 
