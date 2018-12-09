@@ -52,6 +52,8 @@ int main()
     
     RUN_TEST(test_phev_pipe_createPipe);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
+    RUN_TEST(test_phev_pipe_splitter_one_message);
+    //RUN_TEST(test_phev_pipe_splitter_two_messages);
 
     return UNITY_END();
 }

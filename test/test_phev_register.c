@@ -84,7 +84,7 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
         .inputSplitter = NULL,
         .outputSplitter = NULL,
         .inputResponder = NULL,
-        .outputResponder = (msg_pipe_responder_t) phev_pipe_command_responder,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
         .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
         .preConnectHook = NULL,
         .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,

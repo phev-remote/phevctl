@@ -72,7 +72,7 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
     
     return ret;
 }
-message_t * phev_pipe_command_responder(void * ctx, message_t * message)
+message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 {
     LOG_V(APP_TAG,"START - responder");
     
@@ -233,4 +233,37 @@ void phev_pipe_registerEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandler_
 void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t * ctx, phevPipeEventHandler_t eventHandler)
 {
     ctx->eventHandler = NULL;
+}
+
+messageBundle_t * phev_pipe_outputSplitter(void * ctx, message_t * message)
+{
+    LOG_V(APP_TAG,"START - outputSplitter");
+    
+    LOG_BUFFER_HEXDUMP(APP_TAG, message->data,message->length,LOG_DEBUG);
+    message_t * out = phev_core_extractMessage(message->data, message->length);
+
+    if(out == NULL) return NULL;
+    messageBundle_t * messages = malloc(sizeof(messageBundle_t));
+
+    messages->numMessages = 0;
+    messages->messages[messages->numMessages++] = out;
+    
+    int total = out->length;
+
+    while(message->length > total)
+    {
+        out = phev_core_extractMessage(message->data + total, message->length - total);
+        if(out!= NULL)
+        {
+            total += out->length;
+            messages->messages[messages->numMessages++] = out;
+        } else {
+            break;
+        }
+        
+    }
+    LOG_D(APP_TAG,"Split messages into %d",messages->numMessages);
+    LOG_MSG_BUNDLE(APP_TAG,messages);
+    LOG_V(APP_TAG,"END - outputSplitter");
+    return messages;
 }
