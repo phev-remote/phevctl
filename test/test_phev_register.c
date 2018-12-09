@@ -10,8 +10,16 @@ static message_t * test_phev_register_messages[10];
 static message_t * test_phev_register_inHandlerSend = NULL;
 static int test_phev_register_index = 0;
 static int test_register_aa_ack = 0;
+static int test_register_reg_evt = 0;
+static int test_phev_register_complete_called = 0;
 
 uint8_t startMsg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3 };
+
+
+void test_phev_register_complete(void)
+{
+    test_phev_register_complete_called ++;
+}
 
 void test_phev_register_outHandlerIn(messagingClient_t *client, message_t *message) 
 {
@@ -91,6 +99,7 @@ void test_phev_register_bootstrap(void)
     
     phevRegisterSettings_t settings = {
         .pipe = pipe,
+        .complete = NULL,
     };
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
@@ -111,6 +120,10 @@ int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * ev
         }
         case PHEV_PIPE_AA_ACK: {
             test_register_aa_ack ++;
+            break;
+        }
+        case PHEV_PIPE_REGISTRATION: {
+            test_register_reg_evt ++;
             break;
         }
         default : {
@@ -184,4 +197,71 @@ void test_phev_register_should_trigger_aa_ack_event(void)
 
     TEST_ASSERT_EQUAL(1,test_register_aa_ack);
     
+}
+void test_phev_register_should_trigger_registration_event(void)
+{
+    uint8_t reg[] = {0x6f,0x04,0x00,0x2a,0x00,0x9d};
+
+    test_phev_register_inHandlerSend = msg_utils_createMsg(reg,sizeof(reg));
+
+    phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
+    
+    phevRegisterSettings_t settings = {
+        .pipe = pipe,
+        .eventHandler = (phevPipeEventHandler_t) test_phev_register_event_handler,
+    };
+
+    phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    msg_pipe_loop(pipe->pipe);
+
+    TEST_ASSERT_EQUAL(1,test_register_reg_evt);
+    
+}
+
+void test_phev_register_should_send_init(void)
+{
+    uint8_t aaAck[] = {0x6f,0x04,0x01,0xaa,0x00,0x1e};
+
+    const uint8_t expected[] = {0xf6,0x0a,0x00,0x01,0x2f,0x0d,0xc2,0xc2,0x91,0x85,0x00,0xd3,0xf6,0x04,0x00,0xaa,0x00,0xa4};
+    
+    test_phev_register_inHandlerSend = msg_utils_createMsg(aaAck,sizeof(aaAck));
+
+    phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
+    
+    phevRegisterSettings_t settings = {
+        .pipe = pipe,
+        .eventHandler = (phevPipeEventHandler_t) test_phev_register_event_handler,
+    };
+
+    phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    msg_pipe_loop(pipe->pipe);
+
+    TEST_ASSERT_EQUAL(1,test_register_aa_ack);
+    
 } 
+void test_phev_register_should_call_complete_when_registered(void)
+{
+    test_phev_register_complete_called = 0;
+    uint8_t reg[] = {0x6f,0x04,0x00,0x2a,0x00,0x9d};
+
+    test_phev_register_inHandlerSend = msg_utils_createMsg(reg,sizeof(reg));
+
+    phev_pipe_ctx_t * pipe = test_phev_register_create_pipe_helper();
+    
+    phevRegisterSettings_t settings = {
+        .pipe = pipe,
+        .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
+        .complete = (phevRegistrationComplete_t) test_phev_register_complete,
+    };
+
+    phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    msg_pipe_loop(pipe->pipe);
+
+    TEST_ASSERT_EQUAL(1,test_phev_register_complete_called);
+    
+}
+
+    

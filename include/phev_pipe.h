@@ -8,6 +8,7 @@
 enum {
     PHEV_PIPE_GOT_VIN,
     PHEV_PIPE_AA_ACK,
+    PHEV_PIPE_REGISTRATION,
 };
 
 typedef struct phevPipeEvent_t 

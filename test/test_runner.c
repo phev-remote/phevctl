@@ -45,6 +45,8 @@ int main()
     RUN_TEST(test_phev_register_getVin);
     RUN_TEST(test_phev_register_should_send_mac_and_aa);
     RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
+    RUN_TEST(test_phev_register_should_trigger_registration_event);
+    RUN_TEST(test_phev_register_should_call_complete_when_registered);
 
 //  PHEV PIPE
     

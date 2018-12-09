@@ -26,6 +26,7 @@
 
 #define KO_WF_INIT_RQ_SP 21
 #define KO_WF_VIN_INFO_EVR 21
+#define KO_WF_REGISTRATION_EVR 42
 #define KO_WF_START_AA_EVR 170
 
 /*

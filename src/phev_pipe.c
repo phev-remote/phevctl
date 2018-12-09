@@ -129,6 +129,22 @@ phevPipeEvent_t * phev_pipe_AAResponseEvent(void)
     return event;
 
 }
+
+phevPipeEvent_t * phev_pipe_registrationEvent(void)
+{
+    LOG_V(APP_TAG,"START - registrationEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_REGISTRATION,
+    event->data =  NULL;
+    event->length = 0;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - registrationEvent");
+    
+    return event;
+
+}
 phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t * phevMessage)
 {
     LOG_V(APP_TAG,"START - messageToEvent");
@@ -145,6 +161,13 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             if(phevMessage->type == RESPONSE_TYPE)
             {
                 event = phev_pipe_AAResponseEvent();
+            }
+            break;
+        }
+        case KO_WF_REGISTRATION_EVR: {
+            if(phevMessage->type == REQUEST_TYPE)
+            {
+                event = phev_pipe_registrationEvent();
             }
             break;
         }

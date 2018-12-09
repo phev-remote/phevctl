@@ -12,6 +12,8 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     phevRegisterCtx_t * ctx = malloc(sizeof(phevRegisterCtx_t));
 
     ctx->pipe = settings.pipe;
+    ctx->complete = settings.complete;
+    
     memcpy(ctx->mac,settings.mac,MAC_ADDR_SIZE);
 
     ctx->pipe->ctx = ctx;
@@ -20,10 +22,14 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
 
     return ctx;
 }
-void phev_register_sendRegister(phevRegisterCtx_t * ctx)
+void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
 {
-    //phev_core_createMessage(SEND_CMD, REQUEST_TYPE, , uint8_t * data, size_t length);
+    phevMessage_t * initMessage = phev_core_simpleRequestCommandMessage(KO_WF_INIT_RQ_SP,0);
+    message_t * message = phev_core_convertToMessage(initMessage);
 
+    msg_pipe_outboundPublish(ctx->pipe, message);
+    free(message);
+    free(initMessage);
 }
 
 void phev_register_sendMac(phev_pipe_ctx_t * ctx)
@@ -47,7 +53,19 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             break;
         }
         case PHEV_PIPE_AA_ACK: {
+             LOG_I(TAG,"Start acknowledged");
             //phev_register_sendRegister(ctx);
+            break;
+        }
+        case PHEV_PIPE_REGISTRATION: {
+            LOG_I(TAG,"Registration complete");
+            if(((phevRegisterCtx_t *) ctx->ctx)->complete != NULL)
+            {
+                LOG_D(TAG,"Calling callback");
+            
+                ((phevRegisterCtx_t *) ctx->ctx)->complete();
+            }
+            
             break;
         }
         default : {

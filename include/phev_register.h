@@ -9,15 +9,19 @@ enum {
     PHEV_REGISTER_GOT_VIN,
 };
 
+typedef void (* phevRegistrationComplete_t)(void);
+
 typedef struct phevRegisterSettings_t {
     phev_pipe_ctx_t * pipe;
     phevPipeEventHandler_t eventHandler;
     uint8_t mac[MAC_ADDR_SIZE];
+    phevRegistrationComplete_t complete;
 } phevRegisterSettings_t;
 
 typedef struct phevRegisterCtx_t {
     phev_pipe_ctx_t * pipe;
     uint8_t mac[MAC_ADDR_SIZE];
+    phevRegistrationComplete_t complete;
 } phevRegisterCtx_t;
 
 phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t);
