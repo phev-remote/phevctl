@@ -140,7 +140,7 @@ int connectToCar(const char *host, uint16_t port)
 
     return tcp_client_connectSocket(host,port);
 }
-phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
+phev_pipe_ctx_t * create_pipe(void)
 {
     messagingSettings_t inSettings = {
         .incomingHandler = incomingHandler,
@@ -151,8 +151,8 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
-	.host = "192.168.8.46",
-	.port = 8080,
+	    .host = "192.168.8.46",
+	    .port = 8080,
     };
          
     messagingClient_t * in = msg_core_createMessagingClient(inSettings);
@@ -174,8 +174,26 @@ phev_pipe_ctx_t * test_phev_register_create_pipe_helper(void)
     return phev_pipe_createPipe(settings);
 }
 
+void reg_complete(void)
+{
+    printf("Registration complete");
+}
+
 int main()
 {
-    
+    phev_pipe_ctx_t * pipe = create_pipe();
+
+    phevRegisterSettings_t settings = {
+        .pipe = pipe,
+        .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
+        .complete = (phevRegistrationComplete_t) reg_complete,
+    };
+
+    phevRegisterCtx_t * ctx = phev_register_init(settings);
+
+    while(1) 
+    {
+        msg_pipe_loop(pipe->pipe);
+    }
     return 0;
 }
