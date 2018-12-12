@@ -19,8 +19,20 @@ add_subdirectory(test)
 target_include_directories(phev_register PUBLIC include)
 
 add_executable(app main.c)
+if(WIN32)
+    target_link_libraries(app LINK_PUBLIC
+        msg_core
+        phev_register
+        mswsock
+        advapi32 
+        ws2_32
 
-target_link_libraries (app LINK_PUBLIC 
-    msg_core
-    phev_register
-)
+    )
+else()
+    target_link_libraries (app LINK_PUBLIC 
+        msg_core
+        phev_register 
+    )
+endif()
+
+

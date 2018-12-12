@@ -1,14 +1,24 @@
+#define _WIN32_WINNT 0x0501
 #include <stdio.h>
+#include <stdlib.h>
+#ifdef __linux__
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
+#endif
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 #include <unistd.h>
 #include <time.h>
 #include "phev_register.h"
 #include "msg_tcpip.h"
 #include "logger.h"
-
 
 #define TCP_READ read
 #define TCP_WRITE write
@@ -17,6 +27,8 @@
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
 const static char * APP_TAG = "MAIN";
+
+#define DEFAULT_BUFLEN 1024
 
 int tcp_client_connectSocket(const char *host, uint16_t port); 
 
@@ -61,45 +73,76 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
         LOG_E(APP_TAG,"Host not set");
         return -1;
     }    
-    struct sockaddr_in addr;
-    /* set up address to connect to */
-    memset(&addr, 0, sizeof(addr));
-    //addr.sin_len = sizeof(addr);
-    addr.sin_family = AF_INET;
-    addr.sin_port = TCP_HTONS(port);
-    addr.sin_addr.s_addr = inet_addr(host);
-
-    LOG_I(APP_TAG,"Host %s Port %d",host,port);
-  
-    int sock = TCP_SOCKET(AF_INET, SOCK_STREAM, 0);
-
-    if (sock == -1)
-    {
-        LOG_E(APP_TAG,"Failed to open socket");
-  
-        return -1;
-    }
-    int ret = TCP_CONNECT(sock, (struct sockaddr *)(&addr), sizeof(addr));
-    if(ret == -1)
-    {
-        LOG_E(APP_TAG,"Failed to connect");
-  
-        return -1;
-    }
-  
-    LOG_I(APP_TAG,"Connected to host %s port %d",host,port);
+    WSADATA wsaData;
+    SOCKET ConnectSocket = INVALID_SOCKET;
+    struct addrinfo *result = NULL,
+                    *ptr = NULL,
+                    hints;
+    int iResult;
     
-    //global_sock = sock;
+    // Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+        printf("WSAStartup failed with error: %d\n", iResult);
+        return 1;
+    }
+    printf("Here");
+    
+    ZeroMemory( &hints, sizeof(hints) );
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    // Resolve the server address and port
+    iResult = getaddrinfo("192.168.8.46", "8080", &hints, &result);
+    if ( iResult != 0 ) {
+        printf("getaddrinfo failed with error: %d\n", iResult);
+        WSACleanup();
+        return 1;
+    }
+    printf("Here");
+    // Attempt to connect to an address until one succeeds
+    for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) {
+
+        // Create a SOCKET for connecting to server
+        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, 
+            ptr->ai_protocol);
+        if (ConnectSocket == INVALID_SOCKET) {
+            printf("socket failed with error: %ld\n", WSAGetLastError());
+            WSACleanup();
+            return 1;
+        }
+        printf("Here2");
+    
+        // Connect to server.
+        iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+        if (iResult == SOCKET_ERROR) {
+            closesocket(ConnectSocket);
+            ConnectSocket = INVALID_SOCKET;
+            continue;
+        }
+        break;
+    }
+
+    freeaddrinfo(result);
+
+    if (ConnectSocket == INVALID_SOCKET) {
+        printf("Unable to connect to server!\n");
+        WSACleanup();
+        return 1;
+    }
+
     LOG_V(APP_TAG,"END - connectSocket");
     
-    return sock;
+    return ConnectSocket;
 }
 
 int tcp_client_read(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - read");
     
-    int num = tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
+    int num = recv(soc, buf, len, 0);
+    //tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
 
     LOG_D(APP_TAG,"Read %d bytes from tcp stream", num);
     LOG_BUFFER_HEXDUMP(APP_TAG,buf, num,0);
@@ -113,7 +156,7 @@ int tcp_client_write(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - write");
     
-    int num = TCP_WRITE(soc,buf,len);
+    int num = send(soc,buf,len,0);
     
     LOG_D(APP_TAG,"Wriiten %d bytes from tcp stream", num);
     
@@ -123,7 +166,7 @@ int tcp_client_write(int soc, uint8_t * buf, size_t len)
 }
 void outgoingHandler(messagingClient_t * client, message_t * message)
 {
-    printf("New Message\n");
+    LOG_BUFFER_HEXDUMP(APP_TAG,message->data,message->length,0);
 }
 message_t * incomingHandler(messagingClient_t *client) 
 {
@@ -151,7 +194,7 @@ phev_pipe_ctx_t * create_pipe(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
-	    .host = "192.168.8.46",
+	    .host = "wattu.home",
 	    .port = 8080,
     };
          
@@ -185,6 +228,7 @@ int main()
 
     phevRegisterSettings_t settings = {
         .pipe = pipe,
+        .mac = {0x60,0x6C,0x66,0x38,0x3A,0xB5},
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) reg_complete,
     };

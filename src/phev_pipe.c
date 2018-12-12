@@ -32,7 +32,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     msg_pipe_settings_t pipe_settings = {
         .in = settings.in,
         .out = settings.out,
-        .lazyConnect = 1,
+        .lazyConnect = 0,
         .user_context = ctx,
         .in_chain = inputChain,
         .out_chain = outputChain,
@@ -74,7 +74,7 @@ message_t * phev_pipe_outputChainInputTransformer(void * ctx, message_t * messag
 }
 message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 {
-    LOG_V(APP_TAG,"START - responder");
+    LOG_V(APP_TAG,"START - commandResponder");
     
     message_t * out = NULL;
 
@@ -91,6 +91,13 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
             phev_core_destroyMessage(msg);
         }
         free(phevMsg.data);
+    }
+    if(out)
+    {
+        LOG_D(APP_TAG,"Responding with");
+        LOG_BUFFER_HEXDUMP(APP_TAG,out->data,out->length,LOG_DEBUG);
+    } else {
+        LOG_D(APP_TAG,"No response");
     }
     LOG_V(APP_TAG,"END - commandResponder");
     return out;
@@ -129,6 +136,21 @@ phevPipeEvent_t * phev_pipe_AAResponseEvent(void)
     return event;
 
 }
+phevPipeEvent_t * phev_pipe_startResponseEvent(void)
+{
+    LOG_V(APP_TAG,"START - startResponseEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_START_ACK,
+    event->data =  NULL;
+    event->length = 0;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - startResponseEvent");
+    
+    return event;
+
+}
 
 phevPipeEvent_t * phev_pipe_registrationEvent(void)
 {
@@ -145,6 +167,48 @@ phevPipeEvent_t * phev_pipe_registrationEvent(void)
     return event;
 
 }
+phevPipeEvent_t * phev_pipe_ecuVersion2Event(void)
+{
+    LOG_V(APP_TAG,"START - ecuVersion2Event");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_ECU_VERSION2,
+    event->data =  NULL;
+    event->length = 0;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - ecuVersion2Event");
+    
+    return event;
+}
+phevPipeEvent_t * phev_pipe_remoteSecurityPresentInfoEvent(void)
+{
+    LOG_V(APP_TAG,"START - remoteSecurityPresentInfoEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO,
+    event->data =  NULL;
+    event->length = 0;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - remoteSecurityPresentInfoEvent");
+    
+    return event;
+}
+phevPipeEvent_t * phev_pipe_regDispEvent(void)
+{
+    LOG_V(APP_TAG,"START - regDispEvent");
+    phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
+
+    event->event = PHEV_PIPE_REG_DISP,
+    event->data =  NULL;
+    event->length = 0;
+    LOG_D(APP_TAG,"Created Event ID %d",event->event);
+    
+    LOG_V(APP_TAG,"END - regDispEvent");
+    
+    return event;
+}
 phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t * phevMessage)
 {
     LOG_V(APP_TAG,"START - messageToEvent");
@@ -154,12 +218,25 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     switch(phevMessage->reg)
     {
         case KO_WF_VIN_INFO_EVR: {
+            LOG_D(APP_TAG,"KO_WF_VIN_INFO_EVR");
+            
             event = phev_pipe_createVINEvent(phevMessage->data);
             break;
         }
+        case KO_WF_CONNECT_INFO_GS_SP: {
+            
+            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == START_RESP)
+            {
+                LOG_D(APP_TAG,"KO_WF_CONNECT_INFO_GS_SP");
+                event = phev_pipe_startResponseEvent();
+            }
+            break;
+        }
         case KO_WF_START_AA_EVR: {
+            
             if(phevMessage->type == RESPONSE_TYPE)
             {
+                LOG_D(APP_TAG,"KO_WF_START_AA_EVR");
                 event = phev_pipe_AAResponseEvent();
             }
             break;
@@ -168,6 +245,27 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             if(phevMessage->type == REQUEST_TYPE)
             {
                 event = phev_pipe_registrationEvent();
+            }
+            break;
+        }
+        case KO_WF_ECU_VERSION2_EVR: {
+            if(phevMessage->type == REQUEST_TYPE)
+            {
+                event = phev_pipe_ecuVersion2Event();
+            }
+            break;
+        }
+        case KO_WF_REMOTE_SECURTY_PRSNT_INFO: {
+            if(phevMessage->type == REQUEST_TYPE)
+            {
+                event = phev_pipe_remoteSecurityPresentInfoEvent();
+            }
+            break;
+        }
+        case KO_WF_REG_DISP_SP: {
+            if(phevMessage->type == RESPONSE_TYPE)
+            {
+                event = phev_pipe_regDispEvent();
             }
             break;
         }

@@ -24,10 +24,14 @@
 #define VIN_LEN 17
 #define MAC_ADDR_SIZE 6
 
+#define KO_WF_CONNECT_INFO_GS_SP 1
+#define KO_WF_REG_DISP_SP 16
 #define KO_WF_INIT_RQ_SP 21
 #define KO_WF_VIN_INFO_EVR 21
 #define KO_WF_REGISTRATION_EVR 42
 #define KO_WF_START_AA_EVR 170
+#define KO_WF_ECU_VERSION2_EVR 192
+#define KO_WF_REMOTE_SECURTY_PRSNT_INFO 3
 
 /*
 enum commands_t  {

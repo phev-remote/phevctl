@@ -45,15 +45,22 @@ int main()
     RUN_TEST(test_phev_register_getVin);
     RUN_TEST(test_phev_register_should_send_mac_and_aa);
     RUN_TEST(test_phev_register_should_trigger_aa_ack_event);
-    RUN_TEST(test_phev_register_should_trigger_registration_event);
     RUN_TEST(test_phev_register_should_call_complete_when_registered);
+    RUN_TEST(test_phev_register_should_get_start_ack);
+    RUN_TEST(test_phev_register_should_get_aa_ack);
+    RUN_TEST(test_phev_register_should_get_registration);
+    RUN_TEST(test_phev_register_should_get_ecu_version);
+    RUN_TEST(test_phev_register_should_get_remote_security_present);
+    RUN_TEST(test_phev_register_should_get_reg_disp);
+    RUN_TEST(test_phev_register_end_to_end);
 
 //  PHEV PIPE
     
     RUN_TEST(test_phev_pipe_createPipe);
     RUN_TEST(test_phev_pipe_outputChainInputTransformer);
     RUN_TEST(test_phev_pipe_splitter_one_message);
-    //RUN_TEST(test_phev_pipe_splitter_two_messages);
+    RUN_TEST(test_phev_pipe_publish);
+    RUN_TEST(test_phev_pipe_commandResponder);
 
     return UNITY_END();
 }
