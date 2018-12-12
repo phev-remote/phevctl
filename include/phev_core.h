@@ -32,6 +32,7 @@
 #define KO_WF_START_AA_EVR 170
 #define KO_WF_ECU_VERSION2_EVR 192
 #define KO_WF_REMOTE_SECURTY_PRSNT_INFO 3
+#define KO_WF_DATE_INFO_SYNC_SP 5
 
 /*
 enum commands_t  {
