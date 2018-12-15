@@ -172,10 +172,6 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
 #else
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
-<<<<<<< HEAD
-=======
-    printf("Connecting to %s %d\n",host,port);
->>>>>>> e88346cb615f8c52270fba333f5da885709f8182
     LOG_V(APP_TAG,"START - connectSocket");
     LOG_D(APP_TAG,"Host %s, Port %d",host,port);
 
@@ -256,7 +252,7 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
   
     LOG_I(APP_TAG,"Connected to host %s port %d",host,port);
     
-    global_sock = sock;
+    //global_sock = sock;
     LOG_V(APP_TAG,"END - connectSocket");
     
     return sock;
