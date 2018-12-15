@@ -28,11 +28,7 @@ void phev_register_sendMac(phev_pipe_ctx_t * ctx)
     
     message_t * message = phev_core_startMessageEncoded(((phevRegisterCtx_t *) ctx->ctx)->mac);
     msg_pipe_outboundPublish(ctx->pipe,  message);
-<<<<<<< HEAD
     //free(message);
-=======
-//    free(message);
->>>>>>> e88346cb615f8c52270fba333f5da885709f8182
     LOG_V(TAG,"END - sendMac");
     
 }
