@@ -88,9 +88,9 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
         {
             phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
             out = phev_core_convertToMessage(msg);
-            phev_core_destroyMessage(msg);
+//            phev_core_destroyMessage(msg);
         }
-        free(phevMsg.data);
+//        free(phevMsg.data);
     }
     if(out)
     {

@@ -15,3 +15,6 @@ add_library(msg_core STATIC
     msg_core/src/msg_tcpip.c 
     msg_core/src/msg_utils.c
 )
+
+
+target_include_directories(msg_core PUBLIC msg_core/include)
