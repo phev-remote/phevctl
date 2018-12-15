@@ -22,11 +22,6 @@ target_include_directories(phev_register PUBLIC include)
 
 add_executable(app main.c)
 
-<<<<<<< HEAD
-=======
-link_directories (${PROJECT_SOURCE_DIR}/external)
-link_directories(external/)
->>>>>>> e88346cb615f8c52270fba333f5da885709f8182
 if(WIN32)
     target_link_libraries(app LINK_PUBLIC
         msg_core

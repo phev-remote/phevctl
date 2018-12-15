@@ -319,11 +319,7 @@ phev_pipe_ctx_t * create_pipe(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
-<<<<<<< HEAD
 	    .host = "192.168.1.64",
-=======
-	    .host = "192.168.8.46",
->>>>>>> e88346cb615f8c52270fba333f5da885709f8182
 	    .port = 8080,
     };
          
