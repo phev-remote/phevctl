@@ -220,6 +220,11 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     LOG_D(APP_TAG,"Reg %d Len %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
     phevPipeEvent_t * event = NULL;
 
+    if(phevMessage->command == PING_RESP_CMD)
+    {
+        LOG_D(APP_TAG,"Ignoring ping");
+        return NULL;
+    } 
     switch(phevMessage->reg)
     {
         case KO_WF_VIN_INFO_EVR: {
