@@ -74,7 +74,6 @@ void my_ms_to_timeval(int timeout_ms, struct timeval *tv)
     tv->tv_sec = timeout_ms / 1000;
     tv->tv_usec = (timeout_ms - (tv->tv_sec * 1000)) * 1000;
 }
-#ifdef _WIN32
 
 static int tcp_poll_read(int soc, int timeout_ms)
 {
@@ -98,6 +97,8 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     hexdump("TCP",buffer,read_len,0);
     return read_len;
 }
+#ifdef _WIN32
+
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
     LOG_V(APP_TAG,"START - connectSocket");
@@ -170,50 +171,6 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
     return ConnectSocket;
 }
 #else
-int tcp_client_connectSocket(const char *host, uint16_t port) 
-{
-    LOG_V(APP_TAG,"START - connectSocket");
-    LOG_D(APP_TAG,"Host %s, Port %d",host,port);
-
-    if(host == NULL) 
-    {
-        LOG_E(APP_TAG,"Host not set");
-        return -1;
-    }    
-    struct sockaddr_in addr;
-    /* set up address to connect to */
-    memset(&addr, 0, sizeof(addr));
-    //addr.sin_len = sizeof(addr);
-    addr.sin_family = AF_INET;
-    addr.sin_port = TCP_HTONS(port);
-    addr.sin_addr.s_addr = inet_addr(host);
-
-    LOG_I(APP_TAG,"Host %s Port %d",host,port);
-  
-    int sock = TCP_SOCKET(AF_INET, SOCK_STREAM, 0);
-
-    if (sock == -1)
-    {
-        LOG_E(APP_TAG,"Failed to open socket");
-  
-        return -1;
-    }
-    int ret = TCP_CONNECT(sock, (struct sockaddr *)(&addr), sizeof(addr));
-    if(ret == -1)
-    {
-        LOG_E(APP_TAG,"Failed to connect");
-  
-        return -1;
-    }
-  
-    LOG_I(APP_TAG,"Connected to host %s port %d",host,port);
-    
-    //global_sock = sock;
-    LOG_V(APP_TAG,"END - connectSocket");
-    
-    return sock;
-}
-
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
     LOG_V(APP_TAG,"START - connectSocket");
