@@ -21,6 +21,7 @@ add_subdirectory(test)
 target_include_directories(phev_register PUBLIC include)
 
 add_executable(app main.c)
+
 if(WIN32)
     target_link_libraries(app LINK_PUBLIC
         msg_core
@@ -32,9 +33,7 @@ if(WIN32)
     )
 else()
     target_link_libraries (app LINK_PUBLIC 
-        msg_core
+        msg_core 
         phev_register 
     )
 endif()
-
-

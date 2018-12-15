@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
 #endif
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -62,7 +63,7 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     }
     return read_len;
 }
-
+#ifdef _WIN32
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
     LOG_V(APP_TAG,"START - connectSocket");
@@ -136,7 +137,51 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
     
     return ConnectSocket;
 }
+#else
+int tcp_client_connectSocket(const char *host, uint16_t port) 
+{
+    LOG_V(APP_TAG,"START - connectSocket");
+    LOG_D(APP_TAG,"Host %s, Port %d",host,port);
 
+    if(host == NULL) 
+    {
+        LOG_E(APP_TAG,"Host not set");
+        return -1;
+    }    
+    struct sockaddr_in addr;
+    /* set up address to connect to */
+    memset(&addr, 0, sizeof(addr));
+    //addr.sin_len = sizeof(addr);
+    addr.sin_family = AF_INET;
+    addr.sin_port = TCP_HTONS(port);
+    addr.sin_addr.s_addr = inet_addr(host);
+
+    LOG_I(APP_TAG,"Host %s Port %d",host,port);
+  
+    int sock = TCP_SOCKET(AF_INET, SOCK_STREAM, 0);
+
+    if (sock == -1)
+    {
+        LOG_E(APP_TAG,"Failed to open socket");
+  
+        return -1;
+    }
+    int ret = TCP_CONNECT(sock, (struct sockaddr *)(&addr), sizeof(addr));
+    if(ret == -1)
+    {
+        LOG_E(APP_TAG,"Failed to connect");
+  
+        return -1;
+    }
+  
+    LOG_I(APP_TAG,"Connected to host %s port %d",host,port);
+    
+    //global_sock = sock;
+    LOG_V(APP_TAG,"END - connectSocket");
+    
+    return sock;
+}
+#endif
 int tcp_client_read(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - read");
@@ -194,7 +239,7 @@ phev_pipe_ctx_t * create_pipe(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
-	    .host = "wattu.home",
+	    .host = "192.168.1.64",
 	    .port = 8080,
     };
          
