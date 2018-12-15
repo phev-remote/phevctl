@@ -1,3 +1,4 @@
+//#define LOG_LEVEL 1
 #define _WIN32_WINNT 0x0501
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,7 +31,37 @@
 const static char * APP_TAG = "MAIN";
 
 #define DEFAULT_BUFLEN 1024
+static void bufferDump(size_t length,uint8_t * buffer) 
+{
+    if(length <= 0 || buffer == NULL) return;
 
+    char out[17];
+    memset(&out,'\0',17);
+        
+    //printf("%s: ",tag);
+    int i = 0;
+    for(i=0;i<length;i++)
+    {
+        printf("%02x ",buffer[i]);
+        out[i % 16] = (isprint(buffer[i]) ? buffer[i] : '.');
+        if((i+1) % 8 == 0) printf(" ");
+        if((i+1) % 16 ==0) {
+            out[16] = '\0';
+            printf(" | %s |\n%s: ",out);
+        }
+    }
+    if((i % 16) + 1 != 0)
+    {
+        int num = (16 - (i % 16)) * 3;
+        num = ((i % 16) < 8 ? num + 1 : num);
+        out[(i % 16)] = '\0';
+        char padding[(16 * 3) + 2];
+        memset(&padding,' ',num+1);
+        padding[(16-i)*3] = '\0';
+        printf("%s | %s |\n",padding,out);
+    }
+    printf("\n");
+}
 int tcp_client_connectSocket(const char *host, uint16_t port); 
 
 int tcp_client_read(int soc, uint8_t * buf, size_t len);
@@ -42,6 +73,8 @@ void my_ms_to_timeval(int timeout_ms, struct timeval *tv)
     tv->tv_sec = timeout_ms / 1000;
     tv->tv_usec = (timeout_ms - (tv->tv_sec * 1000)) * 1000;
 }
+#ifdef _WIN32
+
 static int tcp_poll_read(int soc, int timeout_ms)
 {
     fd_set readset;
@@ -61,6 +94,7 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     if (read_len == 0) {
         return -1;
     }
+    hexdump("TCP",buffer,read_len,0);
     return read_len;
 }
 #ifdef _WIN32
@@ -87,7 +121,6 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
         printf("WSAStartup failed with error: %d\n", iResult);
         return 1;
     }
-    printf("Here");
     
     ZeroMemory( &hints, sizeof(hints) );
     hints.ai_family = AF_UNSPEC;
@@ -101,7 +134,6 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
         WSACleanup();
         return 1;
     }
-    printf("Here");
     // Attempt to connect to an address until one succeeds
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) {
 
@@ -140,6 +172,10 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
 #else
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
+<<<<<<< HEAD
+=======
+    printf("Connecting to %s %d\n",host,port);
+>>>>>>> e88346cb615f8c52270fba333f5da885709f8182
     LOG_V(APP_TAG,"START - connectSocket");
     LOG_D(APP_TAG,"Host %s, Port %d",host,port);
 
@@ -186,11 +222,10 @@ int tcp_client_read(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - read");
     
-    int num = recv(soc, buf, len, 0);
-    //tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
+    int num = tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
 
     LOG_D(APP_TAG,"Read %d bytes from tcp stream", num);
-    LOG_BUFFER_HEXDUMP(APP_TAG,buf, num,0);
+    hexdump("TCP",buf, num,0);
     
     
     LOG_V(APP_TAG,"END - read");
@@ -201,7 +236,83 @@ int tcp_client_write(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - write");
     
+    bufferDump(len,buf);
+    
     int num = send(soc,buf,len,0);
+
+    hexdump("TCP",buf,len,0);    
+    LOG_D(APP_TAG,"Wriiten %d bytes from tcp stream", num);
+    
+    LOG_V(APP_TAG,"END - write");
+    
+    return num;
+}
+
+#else
+
+int tcp_client_connectSocket(const char *host, uint16_t port) 
+{
+    LOG_V(APP_TAG,"START - connectSocket");
+    LOG_D(APP_TAG,"Host %s, Port %d",host,port);
+
+    if(host == NULL) 
+    {
+        LOG_E(APP_TAG,"Host not set");
+        return -1;
+    }    
+    struct sockaddr_in addr;
+    /* set up address to connect to */
+    memset(&addr, 0, sizeof(addr));
+    //addr.sin_len = sizeof(addr);
+    addr.sin_family = AF_INET;
+    addr.sin_port = TCP_HTONS(port);
+    addr.sin_addr.s_addr = inet_addr(host);
+
+    LOG_I(APP_TAG,"Host %s Port %d",host,port);
+  
+    int sock = TCP_SOCKET(AF_INET, SOCK_STREAM, 0);
+
+    if (sock == -1)
+    {
+        LOG_E(APP_TAG,"Failed to open socket");
+  
+        return -1;
+    }
+    int ret = TCP_CONNECT(sock, (struct sockaddr *)(&addr), sizeof(addr));
+    if(ret == -1)
+    {
+        LOG_E(APP_TAG,"Failed to connect");
+  
+        return -1;
+    }
+  
+    LOG_I(APP_TAG,"Connected to host %s port %d",host,port);
+    
+    global_sock = sock;
+    LOG_V(APP_TAG,"END - connectSocket");
+    
+    return sock;
+}
+
+int tcp_client_read(int soc, uint8_t * buf, size_t len)
+{
+    LOG_V(APP_TAG,"START - read");
+    
+    int num = tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
+
+    LOG_D(APP_TAG,"Read %d bytes from tcp stream", num);
+    LOG_BUFFER_HEXDUMP(APP_TAG,buf, num,LOG_DEBUG);
+    
+    
+    LOG_V(APP_TAG,"END - read");
+    
+    return num;
+}
+int tcp_client_write(int soc, uint8_t * buf, size_t len)
+{
+    LOG_V(APP_TAG,"START - write");
+    
+    int num = TCP_WRITE(soc,buf,len);
     
     LOG_D(APP_TAG,"Wriiten %d bytes from tcp stream", num);
     
@@ -209,9 +320,10 @@ int tcp_client_write(int soc, uint8_t * buf, size_t len)
     
     return num;
 }
+#endif
 void outgoingHandler(messagingClient_t * client, message_t * message)
 {
-    LOG_BUFFER_HEXDUMP(APP_TAG,message->data,message->length,0);
+    bufferDump(message->length,message->data);
 }
 message_t * incomingHandler(messagingClient_t *client) 
 {
@@ -239,7 +351,11 @@ phev_pipe_ctx_t * create_pipe(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
+<<<<<<< HEAD
 	    .host = "192.168.1.64",
+=======
+	    .host = "192.168.8.46",
+>>>>>>> e88346cb615f8c52270fba333f5da885709f8182
 	    .port = 8080,
     };
          
@@ -261,10 +377,11 @@ phev_pipe_ctx_t * create_pipe(void)
 
     return phev_pipe_createPipe(settings);
 }
-
+static bool reg_completed = false;
 void reg_complete(void)
 {
     printf("Registration complete");
+    reg_completed = true;
 }
 
 uint8_t currentPing;
@@ -320,7 +437,7 @@ int main()
 
     phevRegisterSettings_t settings = {
         .pipe = pipe,
-        .mac = {0x60,0x6C,0x66,0x38,0x3A,0xB5},
+        .mac = { 0xb8,0x27,0xeb,0xb2,0xb1,0x5c },
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) reg_complete,
     };
@@ -335,6 +452,11 @@ int main()
         if(now > lastPingTime) {
             ping(pipe->pipe);
             time(&lastPingTime);
+        }
+        if(reg_completed) 
+        {
+            printf("Completed registration - deregisering event handler");
+            phev_pipe_deregisterEventHandler(pipe,NULL);
         }
     }
     return 0;

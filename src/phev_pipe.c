@@ -84,13 +84,18 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 
         phev_core_decodeMessage(message->data, message->length, &phevMsg);
 
+        if(phevMsg.command == PING_RESP_CMD) 
+        {
+            LOG_D(APP_TAG,"Ignoring ping");
+            return NULL;
+        }
         if(phevMsg.type == REQUEST_TYPE) 
         {
             phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
             out = phev_core_convertToMessage(msg);
-            phev_core_destroyMessage(msg);
+//            phev_core_destroyMessage(msg);
         }
-        free(phevMsg.data);
+//        free(phevMsg.data);
     }
     if(out)
     {
@@ -215,6 +220,11 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     LOG_D(APP_TAG,"Reg %d Len %d Type %d",phevMessage->reg,phevMessage->length,phevMessage->type);
     phevPipeEvent_t * event = NULL;
 
+    if(phevMessage->command == PING_RESP_CMD)
+    {
+        LOG_D(APP_TAG,"Ignoring ping");
+        return NULL;
+    } 
     switch(phevMessage->reg)
     {
         case KO_WF_VIN_INFO_EVR: {
