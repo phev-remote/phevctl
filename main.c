@@ -31,6 +31,7 @@
 const static char * APP_TAG = "MAIN";
 
 #define DEFAULT_BUFLEN 1024
+
 static void bufferDump(size_t length,uint8_t * buffer) 
 {
     if(length <= 0 || buffer == NULL) return;
@@ -97,7 +98,6 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     hexdump("TCP",buffer,read_len,0);
     return read_len;
 }
-#ifdef _WIN32
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
     LOG_V(APP_TAG,"START - connectSocket");
@@ -214,38 +214,6 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
     
     return sock;
 }
-#endif
-int tcp_client_read(int soc, uint8_t * buf, size_t len)
-{
-    LOG_V(APP_TAG,"START - read");
-    
-    int num = tcp_read(soc,buf,len,TCP_READ_TIMEOUT);
-
-    LOG_D(APP_TAG,"Read %d bytes from tcp stream", num);
-    hexdump("TCP",buf, num,0);
-    
-    
-    LOG_V(APP_TAG,"END - read");
-    
-    return num;
-}
-int tcp_client_write(int soc, uint8_t * buf, size_t len)
-{
-    LOG_V(APP_TAG,"START - write");
-    
-    bufferDump(len,buf);
-    
-    int num = send(soc,buf,len,0);
-
-    hexdump("TCP",buf,len,0);    
-    LOG_D(APP_TAG,"Wriiten %d bytes from tcp stream", num);
-    
-    LOG_V(APP_TAG,"END - write");
-    
-    return num;
-}
-
-#else
 
 int tcp_client_connectSocket(const char *host, uint16_t port) 
 {
@@ -290,7 +258,7 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
     
     return sock;
 }
-
+#endif
 int tcp_client_read(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - read");
@@ -317,7 +285,7 @@ int tcp_client_write(int soc, uint8_t * buf, size_t len)
     
     return num;
 }
-#endif
+
 void outgoingHandler(messagingClient_t * client, message_t * message)
 {
     bufferDump(message->length,message->data);
