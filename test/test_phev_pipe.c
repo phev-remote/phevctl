@@ -136,6 +136,42 @@ void test_phev_pipe_commandResponder(void)
     TEST_ASSERT_NOT_NULL(global_message);
     TEST_ASSERT_EQUAL_MEMORY(expected,global_message->data,sizeof(expected));
 }
+void test_phev_pipe_commandResponder_should_only_respond_to_commands(void)
+{
+    const uint8_t reg[] = {0x9f,0x04,0x01,0x10,0x06,0xba};
+    global_message = NULL;
+    global_in_message = msg_utils_createMsg(reg,sizeof(reg));
+    messagingSettings_t inSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerIn,
+        .outgoingHandler = test_phev_pipe_outHandlerIn,
+    };
+    messagingSettings_t outSettings = {
+        .incomingHandler = test_phev_pipe_inHandlerOut,
+        .outgoingHandler = test_phev_pipe_outHandlerOut,
+    };
+    
+    messagingClient_t * in = msg_core_createMessagingClient(inSettings);
+    messagingClient_t * out = msg_core_createMessagingClient(outSettings);
+
+    phev_pipe_settings_t settings = {
+        .in = in,
+        .out = out,
+        .inputSplitter = NULL,
+        .outputSplitter = NULL,
+        .inputResponder = NULL,
+        .outputResponder = (msg_pipe_responder_t) phev_pipe_commandResponder,
+        .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
+    
+        .preConnectHook = NULL,
+        .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+    
+    };
+
+    phev_pipe_ctx_t * ctx =  phev_pipe_createPipe(settings);
+
+    msg_pipe_loop(ctx->pipe);
+    TEST_ASSERT_NULL(global_message);
+}
 
 void test_phev_pipe_outputChainInputTransformer(void)
 {

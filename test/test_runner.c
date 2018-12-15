@@ -61,6 +61,7 @@ int main()
     RUN_TEST(test_phev_pipe_splitter_one_message);
     RUN_TEST(test_phev_pipe_publish);
     RUN_TEST(test_phev_pipe_commandResponder);
+    RUN_TEST(test_phev_pipe_commandResponder_should_only_respond_to_commands);
 
     return UNITY_END();
 }

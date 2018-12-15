@@ -84,6 +84,11 @@ message_t * phev_pipe_commandResponder(void * ctx, message_t * message)
 
         phev_core_decodeMessage(message->data, message->length, &phevMsg);
 
+        if(phevMsg.command == PING_RESP_CMD) 
+        {
+            LOG_D(APP_TAG,"Ignoring ping");
+            return NULL;
+        }
         if(phevMsg.type == REQUEST_TYPE) 
         {
             phevMessage_t * msg = phev_core_responseHandler(&phevMsg);
