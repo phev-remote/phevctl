@@ -22,13 +22,22 @@
 #include "msg_tcpip.h"
 #include "logger.h"
 
+#ifdef _WIN32
+#define TCP_READ recv
+#define TCP_WRITE send
+#else
 #define TCP_READ read
 #define TCP_WRITE write
+#endif
+
 #define TCP_CONNECT connect
 #define TCP_SOCKET socket
 #define TCP_HTONS htons
 #define TCP_READ_TIMEOUT 1000
 const static char * APP_TAG = "MAIN";
+
+
+static bool ping_start = false;
 
 #define DEFAULT_BUFLEN 1024
 
@@ -90,7 +99,11 @@ static int tcp_read(int soc, uint8_t *buffer, int len, int timeout_ms)
     if ((poll = tcp_poll_read(soc, timeout_ms)) <= 0) {
         return poll;
     }
+#ifdef _WIN32
+    int read_len = TCP_READ(soc, buffer, len,0);
+#else
     int read_len = TCP_READ(soc, buffer, len);
+#endif
     if (read_len == 0) {
         return -1;
     }
@@ -129,7 +142,7 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
     hints.ai_protocol = IPPROTO_TCP;
 
     // Resolve the server address and port
-    iResult = getaddrinfo("192.168.8.46", "8080", &hints, &result);
+    iResult = getaddrinfo(host, "8080", &hints, &result);
     if ( iResult != 0 ) {
         printf("getaddrinfo failed with error: %d\n", iResult);
         WSACleanup();
@@ -146,8 +159,7 @@ int tcp_client_connectSocket(const char *host, uint16_t port)
             WSACleanup();
             return 1;
         }
-        printf("Here2");
-    
+        
         // Connect to server.
         iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
         if (iResult == SOCKET_ERROR) {
@@ -232,9 +244,11 @@ int tcp_client_read(int soc, uint8_t * buf, size_t len)
 int tcp_client_write(int soc, uint8_t * buf, size_t len)
 {
     LOG_V(APP_TAG,"START - write");
-    
+#ifdef _WIN32
+    int num = TCP_WRITE(soc,buf,len,0);
+#else
     int num = TCP_WRITE(soc,buf,len);
-    
+#endif    
     LOG_D(APP_TAG,"Wriiten %d bytes from tcp stream", num);
     
     LOG_V(APP_TAG,"END - write");
@@ -244,7 +258,8 @@ int tcp_client_write(int soc, uint8_t * buf, size_t len)
 
 void outgoingHandler(messagingClient_t * client, message_t * message)
 {
-    bufferDump(message->length,message->data);
+    LOG_I(APP_TAG,"Outgoing Handler data");
+    //bufferDump(message->length,message->data);
 }
 message_t * incomingHandler(messagingClient_t *client) 
 {
@@ -261,7 +276,14 @@ int connectToCar(const char *host, uint16_t port)
 
     return tcp_client_connectSocket(host,port);
 }
-phev_pipe_ctx_t * create_pipe(void)
+
+void started(void)
+{
+    printf("Started\n");
+    ping_start = true;
+}
+
+phev_pipe_ctx_t * create_pipe(const char * host)
 {
     messagingSettings_t inSettings = {
         .incomingHandler = incomingHandler,
@@ -272,7 +294,7 @@ phev_pipe_ctx_t * create_pipe(void)
         .connect = connectToCar, 
         .read = tcp_client_read,
         .write = tcp_client_write,
-	    .host = "192.168.1.64",
+	    .host = strdup(host),
 	    .port = 8080,
     };
          
@@ -290,6 +312,7 @@ phev_pipe_ctx_t * create_pipe(void)
         .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
         .preConnectHook = NULL,
         .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
+        .started = (phev_pipe_started_handler_t) started,
     };
 
     return phev_pipe_createPipe(settings);
@@ -348,17 +371,103 @@ void resetPing(void)
     lastPingTime = 0;
 }
 
-int main()
+void printHelp(void)
 {
-    phev_pipe_ctx_t * pipe = create_pipe();
+    printf("HELP\n");
+}
+char * getHostFromArg(int argc, char *argv[])
+{
+    printf("Getting Host\n");
+    for(int i = 1;i < argc;i++)
+    {
+        if(strcmp("--host",argv[i]) == 0)
+        {
+            if(i == argc) 
+            {
+                printf("No host passed");
+                return NULL;
+            } else {
+                return strdup(argv[i+1]);
+            }
+        }
+    }
+    return NULL;
+}
+
+uint8_t * getMacFromString(const char * str)
+{
+    uint8_t * mac = malloc(6);
+                
+    if(strlen(str) == 17)
+    {
+        sscanf(str, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",&mac[0],&mac[1],&mac[2],&mac[3],&mac[4],&mac[5]);
+                    
+        return mac;
+    } else {
+        printf("Invalid MAC %s\n",str);        
+        return NULL;
+    }
+}
+uint8_t * getMacFromArg(int argc, char *argv[])
+{
+    printf("Getting MAC\n");
+    for(int i = 1;i < argc;i++)
+    {
+        if(strcmp("--mac",argv[i]) == 0)
+        {
+            if(i == argc) 
+            {
+                printf("No MAC passed");
+                return NULL;
+            } else {
+                printf("Got mac %s\n",argv[i+1]);
+                return strdup(argv[i+1]);
+            }
+        }
+    }
+    return NULL;
+}
+int main(int argc, char *argv[])
+{
+    printf("Starting\n");
+
+    printf("Number of arguments %d\n",argc);
+
+    if(argc < 3) 
+    {
+        printHelp();
+        return 0;
+    }
+    
+    char * macStr = getMacFromArg(argc,argv);
+    
+    uint8_t * mac = getMacFromString(macStr);
+    
+    if(mac == NULL)
+    {
+        printf("Error invalid MAC %s\n",macStr);
+        return -1;
+    }
+
+    char * host = getHostFromArg(argc,argv);
+    
+    if(host == NULL)
+    {
+        host = strdup("192.168.1.46");
+    }
+
+    printf("Host %s and MAC %s\n",host,macStr);
+
+    phev_pipe_ctx_t * pipe = create_pipe(host);
 
     phevRegisterSettings_t settings = {
         .pipe = pipe,
-        .mac = { 0xb8,0x27,0xeb,0xb2,0xb1,0x5c },
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) reg_complete,
     };
 
+    memcpy(&settings.mac,mac,6);
+    
     phevRegisterCtx_t * ctx = phev_register_init(settings);
     time_t now;
     resetPing();
@@ -366,7 +475,7 @@ int main()
     {
         msg_pipe_loop(pipe->pipe);
         time(&now);
-        if(now > lastPingTime) {
+        if(now > lastPingTime && ping_start) {
             ping(pipe->pipe);
             time(&lastPingTime);
         }

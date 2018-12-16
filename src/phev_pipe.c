@@ -41,6 +41,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     
     ctx->pipe = msg_pipe(pipe_settings);
 
+    ctx->started = settings.started;
     ctx->ctx = settings.ctx;
     
     LOG_V(APP_TAG,"END - createPipe");

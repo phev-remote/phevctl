@@ -28,6 +28,10 @@ void phev_register_sendMac(phev_pipe_ctx_t * ctx)
     
     message_t * message = phev_core_startMessageEncoded(((phevRegisterCtx_t *) ctx->ctx)->mac);
     msg_pipe_outboundPublish(ctx->pipe,  message);
+    if(ctx->started)
+    {
+        ctx->started(ctx);
+    }
     //free(message);
     LOG_V(TAG,"END - sendMac");
     
@@ -35,7 +39,7 @@ void phev_register_sendMac(phev_pipe_ctx_t * ctx)
 void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
 {
     LOG_V(TAG,"START - sendRegister");
-    phevMessage_t * reg = phev_core_simpleRequestCommandMessage(KO_WF_REG_DISP_SP,0);
+    phevMessage_t * reg = phev_core_simpleRequestCommandMessage(KO_WF_REG_DISP_SP,1);
     message_t * message = phev_core_convertToMessage(reg);
 
     msg_pipe_outboundPublish(ctx->pipe,  message);
