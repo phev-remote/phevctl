@@ -33,7 +33,10 @@
 #define KO_WF_ECU_VERSION2_EVR 192
 #define KO_WF_REMOTE_SECURTY_PRSNT_INFO 3
 #define KO_WF_DATE_INFO_SYNC_SP 5
-
+#define KO_WF_MANUAL_AC_ON_RQ_SP 4
+#define KO_WF_DATE_INFO_SYNC_SP 5
+#define KO_WF_H_LAMP_CONT_SP 10
+#define KO_WF_P_LAMP_CONT_SP 11
 /*
 enum commands_t  {
     PING_SEND_CMD = 0xf9, 

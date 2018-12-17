@@ -18,6 +18,7 @@
 #endif
 #include <unistd.h>
 #include <time.h>
+#include "phev_core.h"
 #include "phev_register.h"
 #include "msg_tcpip.h"
 #include "logger.h"
@@ -277,12 +278,6 @@ int connectToCar(const char *host, uint16_t port)
     return tcp_client_connectSocket(host,port);
 }
 
-void started(void)
-{
-    printf("Started\n");
-    ping_start = true;
-}
-
 phev_pipe_ctx_t * create_pipe(const char * host)
 {
     messagingSettings_t inSettings = {
@@ -321,7 +316,11 @@ void reg_complete(phevRegisterCtx_t * ctx)
 {
     printf("Registration complete VIN is %s",ctx->vin);
     reg_completed = true;
+    phevMessage_t * headLightsOn = phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 1);
+    message_t * message = phev_core_convertToMessage(headLightsOn);
+    phev_core_destroyMessage(headLightsOn);
 
+    msg_pipe_outboundPublish(ctx->pipe->pipe,  message);
 }
 
 uint8_t currentPing;
@@ -483,6 +482,7 @@ int main(int argc, char *argv[])
         {
             printf("Completed registration - deregisering event handler");
             phev_pipe_deregisterEventHandler(pipe,NULL);
+            reg_completed = false;
         }
     }
     return 0;
