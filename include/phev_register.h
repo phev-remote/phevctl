@@ -22,6 +22,14 @@ typedef struct phevRegisterCtx_t {
     phev_pipe_ctx_t * pipe;
     uint8_t mac[MAC_ADDR_SIZE];
     phevRegistrationComplete_t complete;
+    bool startAck;
+    bool aaAck;
+    bool registrationRequest;
+    bool ecu;
+    bool remoteSecurity;
+    bool registrationAck;
+    bool registrationComplete;
+        
 } phevRegisterCtx_t;
 
 phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t);

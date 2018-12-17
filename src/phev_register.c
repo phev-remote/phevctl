@@ -31,6 +31,14 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     memcpy(ctx->mac,settings.mac,MAC_ADDR_SIZE);
 
     ctx->pipe->ctx = ctx;
+    ctx->startAck = false;
+    ctx->aaAck = false;
+    ctx->registrationRequest = false;
+    ctx->ecu = false;
+    ctx->remoteSecurity = false;
+    ctx->registrationAck = false;
+    ctx->registrationComplete = false;
+        
 
     phev_pipe_registerEventHandler(settings.pipe, settings.eventHandler);
 
@@ -49,6 +57,13 @@ void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
 }
 int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 {
+    phevRegisterCtx_t * regCtx = (phevRegisterCtx_t *) ctx->ctx;
+
+    if(regCtx->registrationComplete) 
+    {
+        return 0;
+    }
+
     switch(event->event) 
     {
         case PHEV_PIPE_GOT_VIN: {
@@ -58,40 +73,59 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         }
         case PHEV_PIPE_START_ACK: {
             LOG_I(TAG,"Start acknowledged");
+            regCtx->startAck = true;
             //phev_register_sendRegister(ctx);
             break;
         }
         case PHEV_PIPE_AA_ACK: {
             LOG_I(TAG,"AA acknowledged");
+            regCtx->aaAck = true;
             break;
         }
         case PHEV_PIPE_REGISTRATION: {
             LOG_I(TAG,"Registration");
+            regCtx->registrationRequest = true;
             
             break;
         }
         case PHEV_PIPE_ECU_VERSION2: {
             LOG_I(TAG,"ECU version");
+            regCtx->ecu = true;
+            
             break;
         };
         case PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO: {
             LOG_I(TAG,"Remote security present info");
+            regCtx->remoteSecurity = true;
+            
             phev_register_sendRegister(ctx);
             break;
         }
         case PHEV_PIPE_REG_DISP: {
-            LOG_I(TAG,"Registration complete");
-            if(((phevRegisterCtx_t *) ctx->ctx)->complete != NULL)
-            {
-                LOG_D(TAG,"Calling callback");
-            
-                ((phevRegisterCtx_t *) ctx->ctx)->complete();
-            }
+            LOG_I(TAG,"Registration Acknowledged");
+
+            regCtx->registrationAck = true;
             
             break;
         }
         default : {
             LOG_W(TAG, "Unknown event %d\n",event->event);
+        }
+    }
+    if(regCtx->startAck &&
+        regCtx->aaAck &&
+        regCtx->registrationRequest &&
+        regCtx->ecu &&
+        regCtx->remoteSecurity &&
+        regCtx->registrationAck)
+    {
+        LOG_I(TAG,"Registration Complete");
+        regCtx->registrationComplete = true;
+        if(((phevRegisterCtx_t *) ctx->ctx)->complete != NULL)
+        {
+                LOG_D(TAG,"Calling callback");
+
+                ((phevRegisterCtx_t *) ctx->ctx)->complete();
         }
     }
 }

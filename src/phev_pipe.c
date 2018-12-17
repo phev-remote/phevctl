@@ -113,14 +113,21 @@ phevPipeEvent_t * phev_pipe_createVINEvent(uint8_t * data)
 {
     LOG_V(APP_TAG,"START - createVINEvent");
     phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
-    phevVinEvent_t * vinEvent = malloc(sizeof(phevVinEvent_t));
-    event->event = PHEV_PIPE_GOT_VIN,
-    event->data =  (uint8_t *) vinEvent;
-    event->length = sizeof(phevVinEvent_t);
-    memcpy(vinEvent->vin, data + 1, VIN_LEN);
-    vinEvent->vin[VIN_LEN]  = 0;
-    vinEvent->registrations = data[19];
 
+    if(data[19] < 3) {
+        phevVinEvent_t * vinEvent = malloc(sizeof(phevVinEvent_t));
+        event->event = PHEV_PIPE_GOT_VIN,
+        event->data =  (uint8_t *) vinEvent;
+        event->length = sizeof(phevVinEvent_t);
+        memcpy(vinEvent->vin, data + 1, VIN_LEN);
+        vinEvent->vin[VIN_LEN]  = 0;
+        vinEvent->registrations = data[19];
+    } else {
+        event->event = PHEV_PIPE_MAX_REGISTRATIONS,
+        event->data =  NULL;
+        event->length = 0;
+    }
+    
     LOG_D(APP_TAG,"Created Event ID %d",event->event);
     LOG_BUFFER_HEXDUMP(APP_TAG,event->data,event->length,LOG_DEBUG);
     LOG_V(APP_TAG,"END - createVINEvent");

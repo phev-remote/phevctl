@@ -13,6 +13,7 @@ enum {
     PHEV_PIPE_ECU_VERSION2,
     PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO,
     PHEV_PIPE_REG_DISP,
+    PHEV_PIPE_MAX_REGISTRATIONS,
 };
 
 typedef struct phevPipeEvent_t 
