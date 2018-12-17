@@ -323,10 +323,6 @@ void reg_complete(phevRegisterCtx_t * ctx)
     msg_pipe_outboundPublish(ctx->pipe->pipe,  message);
 }
 
-uint8_t currentPing;
-bool successfulPing;
-time_t lastPingTime;
-
 void printHelp(void)
 {
     printf("HELP\n");
@@ -425,7 +421,6 @@ int main(int argc, char *argv[])
 
     phevRegisterSettings_t settings = {
         .pipe = pipe,
-        .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) reg_complete,
         .errorHandler = (phevErrorHandler_t) errorHandler,
     };
@@ -433,8 +428,7 @@ int main(int argc, char *argv[])
     memcpy(&settings.mac,mac,6);
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
-     
-    time_t now;
+    
     while(1) 
     {
         phev_pipe_loop(pipe);
@@ -444,7 +438,6 @@ int main(int argc, char *argv[])
             phev_pipe_deregisterEventHandler(pipe,NULL);
             reg_completed = false;
         }
-        //usleep(50);
     }
     return 0;
 }

@@ -40,8 +40,13 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     ctx->errorHandler = settings.errorHandler;    
     ctx->pipe->errorHandler = settings.errorHandler;
 
-    phev_pipe_registerEventHandler(settings.pipe, settings.eventHandler);
-
+    if(settings.eventHandler) 
+    {
+        phev_pipe_registerEventHandler(ctx->pipe, settings.eventHandler);    
+    } else {
+        phev_pipe_registerEventHandler(ctx->pipe, phev_register_eventHandler);
+    }
+    
     return ctx;
 }
 void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
