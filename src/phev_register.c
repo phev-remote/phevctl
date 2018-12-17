@@ -117,12 +117,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
             LOG_W(TAG, "Unknown event %d\n",event->event);
         }
     }
-    if(regCtx->startAck &&
-        regCtx->aaAck &&
-        regCtx->registrationRequest &&
-        regCtx->ecu &&
-        regCtx->remoteSecurity &&
-        regCtx->registrationAck &&
+    if(regCtx->registrationAck &&
         regCtx->vin != NULL)
     {
         LOG_I(TAG,"Registration Complete for VIN %s",regCtx->vin);

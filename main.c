@@ -432,12 +432,13 @@ int main(int argc, char *argv[])
 
     printf("Number of arguments %d\n",argc);
 
-    if(argc < 3) 
+    if(argc < 4) 
     {
         printHelp();
         return 0;
     }
     
+
     char * macStr = getMacFromArg(argc,argv);
     
     uint8_t * mac = getMacFromString(macStr);
@@ -456,7 +457,6 @@ int main(int argc, char *argv[])
     }
 
     printf("Host %s and MAC %s\n",host,macStr);
-
     phev_pipe_ctx_t * pipe = create_pipe(host);
 
     phevRegisterSettings_t settings = {
@@ -468,13 +468,15 @@ int main(int argc, char *argv[])
     memcpy(&settings.mac,mac,6);
     
     phevRegisterCtx_t * ctx = phev_register_init(settings);
+     
     time_t now;
     resetPing();
     while(1) 
     {
         msg_pipe_loop(pipe->pipe);
         time(&now);
-        if(now > lastPingTime && ping_start) {
+        if(now > lastPingTime) // && ctx->startAck) 
+        {
             ping(pipe->pipe);
             time(&lastPingTime);
         }
@@ -484,6 +486,7 @@ int main(int argc, char *argv[])
             phev_pipe_deregisterEventHandler(pipe,NULL);
             reg_completed = false;
         }
+        //usleep(50);
     }
     return 0;
 }
