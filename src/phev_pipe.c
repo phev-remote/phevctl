@@ -113,12 +113,13 @@ phevPipeEvent_t * phev_pipe_createVINEvent(uint8_t * data)
 {
     LOG_V(APP_TAG,"START - createVINEvent");
     phevPipeEvent_t * event = malloc(sizeof(phevPipeEvent_t));
-
+    phevVinEvent_t * vinEvent = malloc(sizeof(phevVinEvent_t));
     event->event = PHEV_PIPE_GOT_VIN,
-    event->data =  malloc(VIN_LEN + 1);
-    event->length = VIN_LEN + 1;
-    event->data[VIN_LEN]  = 0;
-    memcpy(event->data, data + 1, VIN_LEN);
+    event->data =  (uint8_t *) vinEvent;
+    event->length = sizeof(phevVinEvent_t);
+    memcpy(vinEvent->vin, data + 1, VIN_LEN);
+    vinEvent->vin[VIN_LEN]  = 0;
+    vinEvent->registrations = data[19];
 
     LOG_D(APP_TAG,"Created Event ID %d",event->event);
     LOG_BUFFER_HEXDUMP(APP_TAG,event->data,event->length,LOG_DEBUG);
@@ -230,8 +231,10 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
     {
         case KO_WF_VIN_INFO_EVR: {
             LOG_D(APP_TAG,"KO_WF_VIN_INFO_EVR");
-            
-            event = phev_pipe_createVINEvent(phevMessage->data);
+            if(phevMessage->type == REQUEST_TYPE)
+            {
+                event = phev_pipe_createVINEvent(phevMessage->data);
+            }
             break;
         }
         case KO_WF_CONNECT_INFO_GS_SP: {
@@ -245,7 +248,7 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
         }
         case KO_WF_START_AA_EVR: {
             
-            if(phevMessage->type == RESPONSE_TYPE)
+            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
             {
                 LOG_D(APP_TAG,"KO_WF_START_AA_EVR");
                 event = phev_pipe_AAResponseEvent();
@@ -253,28 +256,28 @@ phevPipeEvent_t * phev_pipe_messageToEvent(phev_pipe_ctx_t * ctx, phevMessage_t 
             break;
         }
         case KO_WF_REGISTRATION_EVR: {
-            if(phevMessage->type == REQUEST_TYPE)
+            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
             {
                 event = phev_pipe_registrationEvent();
             }
             break;
         }
         case KO_WF_ECU_VERSION2_EVR: {
-            if(phevMessage->type == REQUEST_TYPE)
+            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
             {
                 event = phev_pipe_ecuVersion2Event();
             }
             break;
         }
         case KO_WF_REMOTE_SECURTY_PRSNT_INFO: {
-            if(phevMessage->type == REQUEST_TYPE)
+            if(phevMessage->type == REQUEST_TYPE && phevMessage->command == RESP_CMD)
             {
                 event = phev_pipe_remoteSecurityPresentInfoEvent();
             }
             break;
         }
         case KO_WF_REG_DISP_SP: {
-            if(phevMessage->type == RESPONSE_TYPE)
+            if(phevMessage->type == RESPONSE_TYPE && phevMessage->command == RESP_CMD)
             {
                 event = phev_pipe_regDispEvent();
             }

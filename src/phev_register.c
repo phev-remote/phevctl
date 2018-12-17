@@ -7,6 +7,20 @@
 
 const char * TAG = "PHEV_REGISTER";
 
+void phev_register_sendMac(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(TAG,"START - sendMac");
+    
+    message_t * message = phev_core_startMessageEncoded(((phevRegisterCtx_t *) ctx->ctx)->mac);
+    msg_pipe_outboundPublish(ctx->pipe,  message);
+    if(ctx->started)
+    {
+        ctx->started(ctx);
+    }
+    //free(message);
+    LOG_V(TAG,"END - sendMac");
+    
+}
 phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
 {
     phevRegisterCtx_t * ctx = malloc(sizeof(phevRegisterCtx_t));
@@ -21,20 +35,6 @@ phevRegisterCtx_t * phev_register_init(phevRegisterSettings_t settings)
     phev_pipe_registerEventHandler(settings.pipe, settings.eventHandler);
 
     return ctx;
-}
-void phev_register_sendMac(phev_pipe_ctx_t * ctx)
-{
-    LOG_V(TAG,"START - sendMac");
-    
-    message_t * message = phev_core_startMessageEncoded(((phevRegisterCtx_t *) ctx->ctx)->mac);
-    msg_pipe_outboundPublish(ctx->pipe,  message);
-    if(ctx->started)
-    {
-        ctx->started(ctx);
-    }
-    //free(message);
-    LOG_V(TAG,"END - sendMac");
-    
 }
 void phev_register_sendRegister(phev_pipe_ctx_t * ctx)
 {
@@ -67,6 +67,7 @@ int phev_register_eventHandler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
         }
         case PHEV_PIPE_REGISTRATION: {
             LOG_I(TAG,"Registration");
+            
             break;
         }
         case PHEV_PIPE_ECU_VERSION2: {

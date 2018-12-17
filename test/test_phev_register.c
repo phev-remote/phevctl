@@ -18,6 +18,8 @@ static int test_phev_register_complete_called = 0;
 static int test_phev_register_e2e_out_handler_stage = 0;
 static int test_register_reg_disp_evt = 0;
 static bool test_phev_register_e2e_completed = false;
+static char * vin_event_vin = NULL;
+static uint8_t vin_event_registrations = 0;
 
 uint8_t startMsg[] = { 0x6f,0x17,0x00,0x15,0x00,0x4a,0x4d,0x41,0x58,0x44,0x47,0x47,0x32,0x57,0x47,0x5a,0x30,0x30,0x32,0x30,0x33,0x35,0x01,0x01,0xf3 };
 uint8_t startMsgResponse[] = {0x2f,0x04,0x01,0x01,0x00,0x35};
@@ -110,14 +112,14 @@ void test_phev_register_bootstrap(void)
     TEST_ASSERT_NOT_NULL(ctx);
 }
 
-static char * vin = NULL;
-
 int test_phev_register_event_handler(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event)
 {
     switch(event->event) 
     {
         case PHEV_PIPE_GOT_VIN: {
-            vin = strdup(event->data);
+            phevVinEvent_t * vinEvent = (phevVinEvent_t *) event->data;
+            vin_event_vin = strdup(vinEvent->vin);
+            vin_event_registrations = vinEvent->registrations;
             //printf("Got vin %s\n",vin);
             break;
         }
@@ -284,7 +286,8 @@ void test_phev_register_getVin(void)
 
     msg_pipe_loop(ctx->pipe->pipe);
 
-    TEST_ASSERT_EQUAL_STRING("JMAXDGG2WGZ002035",vin);
+    TEST_ASSERT_EQUAL_STRING("JMAXDGG2WGZ002035",vin_event_vin);
+    TEST_ASSERT_EQUAL(1,vin_event_registrations);
     test_phev_register_inHandlerSend = NULL;
 }
 void test_phev_register_should_get_start_ack(void)

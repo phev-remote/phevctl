@@ -322,6 +322,7 @@ void reg_complete(void)
 {
     printf("Registration complete");
     reg_completed = true;
+
 }
 
 uint8_t currentPing;
