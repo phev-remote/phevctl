@@ -340,7 +340,7 @@ char * getHostFromArg(int argc, char *argv[])
         {
             if(i == argc) 
             {
-                printf("No host passed");
+                printf("No host passed\n");
                 return NULL;
             } else {
                 return strdup(argv[i+1]);
@@ -420,6 +420,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Host %s and MAC %s\n",host,macStr);
+    
     phev_pipe_ctx_t * pipe = create_pipe(host);
 
     phevRegisterSettings_t settings = {

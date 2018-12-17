@@ -54,6 +54,7 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
     ctx->pipe = msg_pipe(pipe_settings);
 
     ctx->errorHandler = settings.errorHandler;
+    ctx->eventHandler = NULL;
     ctx->ctx = settings.ctx;
     
     phev_pipe_resetPing(ctx);
@@ -325,7 +326,10 @@ void phev_pipe_sendEvent(void * ctx, phevMessage_t * phevMessage)
         if(evt != NULL)
         {
             LOG_D(APP_TAG,"Sending event ID %d",evt->event);
-            phevCtx->eventHandler(phevCtx, evt);    
+            if(phevCtx->eventHandler)
+            {
+                phevCtx->eventHandler(phevCtx, evt);
+            }    
         } else {
             LOG_D(APP_TAG,"Not sending event");
         }
