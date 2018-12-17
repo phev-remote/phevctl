@@ -4,6 +4,18 @@
 
 const static char * APP_TAG = "PHEV_PIPE";
 
+void phev_pipe_loop(phev_pipe_ctx_t * ctx)
+{
+    time_t now;
+    msg_pipe_loop(ctx->pipe);
+    time(&now);
+    if(now > ctx->lastPingTime) 
+    {
+        phev_pipe_ping(ctx);
+        time(&ctx->lastPingTime);
+    }
+}
+
 phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
 {
     LOG_V(APP_TAG,"START - createPipe");
@@ -43,6 +55,8 @@ phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t settings)
 
     ctx->errorHandler = settings.errorHandler;
     ctx->ctx = settings.ctx;
+    
+    phev_pipe_resetPing(ctx);
     
     LOG_V(APP_TAG,"END - createPipe");
     
@@ -386,3 +400,57 @@ messageBundle_t * phev_pipe_outputSplitter(void * ctx, message_t * message)
     LOG_V(APP_TAG,"END - outputSplitter");
     return messages;
 }
+
+void phev_pipe_sendTimeSync(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(APP_TAG,"START - sendTimeSync");
+    
+    time_t now;
+    struct tm *timeinfo;
+    time(&now);
+    timeinfo = localtime(&now);
+        
+    const uint8_t pingTime[] = {
+        timeinfo->tm_year - 100,
+        timeinfo->tm_mon + 1,
+        timeinfo->tm_mday,
+        timeinfo->tm_hour,
+        timeinfo->tm_min,
+        timeinfo->tm_sec,
+        1
+    };
+    LOG_D(APP_TAG,"Year %d Month %d Date %d Hour %d Min %d Sec %d\n",pingTime[0],pingTime[1],pingTime[2],pingTime[3],pingTime[4],pingTime[5]);
+    
+    phevMessage_t * dateCmd = phev_core_commandMessage(KO_WF_DATE_INFO_SYNC_SP,pingTime, sizeof(pingTime));
+    message_t * message = phev_core_convertToMessage(dateCmd);
+    msg_pipe_outboundPublish(ctx->pipe,  message);
+    //msg_utils_destroyMsg(message);
+    //phev_core_destroyMessage(dateCmd);
+    LOG_V(APP_TAG,"END - sendTimeSync");
+    
+}
+void phev_pipe_ping(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(APP_TAG,"START - ping");
+    if(((ctx->currentPing + 1) % 30) == 0) 
+    {
+        phev_pipe_sendTimeSync(ctx);
+    }
+    phevMessage_t * ping = phev_core_pingMessage(ctx->currentPing++);
+    message_t * message = phev_core_convertToMessage(ping);
+    
+    msg_pipe_outboundPublish(ctx->pipe,  message);
+    //msg_utils_destroyMsg(message);
+    //phev_core_destroyMessage(ping);
+    LOG_V(APP_TAG,"END - ping");
+    
+}
+void phev_pipe_resetPing(phev_pipe_ctx_t * ctx)
+{
+    LOG_V(APP_TAG,"START - resetPing");
+    ctx->currentPing = 0;
+    ctx->lastPingTime = 0;
+    LOG_V(APP_TAG,"END - resetPing");
+}
+
+

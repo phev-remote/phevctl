@@ -327,49 +327,6 @@ uint8_t currentPing;
 bool successfulPing;
 time_t lastPingTime;
 
-void ping(msg_pipe_ctx_t * ctx)
-{
-    LOG_V(APP_TAG,"START - ping");
-    if(((currentPing + 1) % 30) == 0) 
-    {
-        LOG_D(APP_TAG,"Send time sync");
-        time_t now;
-        struct tm timeinfo;
-        time(&now);
-        localtime(&now);
-        
-        const uint8_t pingTime[] = {
-            timeinfo.tm_year - 100,
-            timeinfo.tm_mon + 1,
-            timeinfo.tm_mday,
-            timeinfo.tm_hour,
-            timeinfo.tm_min,
-            timeinfo.tm_sec,
-            1
-        };
-        phevMessage_t * dateCmd = phev_core_commandMessage(KO_WF_DATE_INFO_SYNC_SP,pingTime, sizeof(pingTime));
-        message_t * message = phev_core_convertToMessage(dateCmd);
-        msg_pipe_outboundPublish(ctx,  message);
-        //msg_utils_destroyMsg(message);
-        //phev_core_destroyMessage(dateCmd);
-    
-    }
-    successfulPing = false;
-    phevMessage_t * ping = phev_core_pingMessage(currentPing++);
-    message_t * message = phev_core_convertToMessage(ping);
-    //phev_controller_sendMessage(ctx, message);
-    msg_pipe_outboundPublish(ctx,  message);
-    //msg_utils_destroyMsg(message);
-    //phev_core_destroyMessage(ping);
-    LOG_V(APP_TAG,"END - ping");
-    
-}
-void resetPing(void)
-{
-    currentPing = 0;
-    lastPingTime = 0;
-}
-
 void printHelp(void)
 {
     printf("HELP\n");
@@ -426,6 +383,12 @@ uint8_t * getMacFromArg(int argc, char *argv[])
     }
     return NULL;
 }
+
+void errorHandler(void * ctx)
+{
+    printf("Registration Error\n");
+    exit(-1);
+}
 int main(int argc, char *argv[])
 {
     printf("Starting\n");
@@ -463,6 +426,7 @@ int main(int argc, char *argv[])
         .pipe = pipe,
         .eventHandler = (phevPipeEventHandler_t) phev_register_eventHandler,
         .complete = (phevRegistrationComplete_t) reg_complete,
+        .errorHandler = (phevErrorHandler_t) errorHandler,
     };
 
     memcpy(&settings.mac,mac,6);
@@ -470,16 +434,9 @@ int main(int argc, char *argv[])
     phevRegisterCtx_t * ctx = phev_register_init(settings);
      
     time_t now;
-    resetPing();
     while(1) 
     {
-        msg_pipe_loop(pipe->pipe);
-        time(&now);
-        if(now > lastPingTime) // && ctx->startAck) 
-        {
-            ping(pipe->pipe);
-            time(&lastPingTime);
-        }
+        phev_pipe_loop(pipe);
         if(reg_completed) 
         {
             printf("\nCompleted registration\n");

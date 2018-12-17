@@ -1,5 +1,6 @@
 #ifndef _PHEV_PIPE_H_
 #define _PHEV_PIPE_H_
+#include <time.h>
 #include "msg_core.h"
 #include "msg_pipe.h"
 #include "phev_core.h"
@@ -39,6 +40,8 @@ typedef struct phev_pipe_ctx_t {
     msg_pipe_ctx_t * pipe;
     phevPipeEventHandler_t eventHandler;
     phevErrorHandler_t errorHandler;
+    time_t lastPingTime;
+    uint8_t currentPing;
     void * ctx;
 } phev_pipe_ctx_t;
 
@@ -56,6 +59,7 @@ typedef struct phev_pipe_settings_t {
     void * ctx;
 } phev_pipe_settings_t;
 
+void phev_pipe_loop(phev_pipe_ctx_t *);
 phev_pipe_ctx_t * phev_pipe_createPipe(phev_pipe_settings_t);
 message_t * phev_pipe_outputChainInputTransformer(void *, message_t *);
 message_t * phev_pipe_outputEventTransformer(void *, message_t *);
@@ -63,6 +67,8 @@ void phev_pipe_registerEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
 void phev_pipe_deregisterEventHandler(phev_pipe_ctx_t *, phevPipeEventHandler_t);
 message_t * phev_pipe_commandResponder(void *, message_t *);
 messageBundle_t * phev_pipe_outputSplitter(void *, message_t *);
+void phev_pipe_ping(phev_pipe_ctx_t *);
+void phev_pipe_resetPing(phev_pipe_ctx_t *);
 //void phev_pipe_sendCommand(phev_core_command_t);
 
 #endif
