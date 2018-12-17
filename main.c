@@ -314,7 +314,7 @@ phev_pipe_ctx_t * create_pipe(const char * host)
 static bool reg_completed = false;
 void reg_complete(phevRegisterCtx_t * ctx)
 {
-    printf("Registration complete VIN is %s",ctx->vin);
+    printf("Registration complete VIN is %s\n",ctx->vin);
     reg_completed = true;
     phevMessage_t * headLightsOn = phev_core_simpleRequestCommandMessage(KO_WF_H_LAMP_CONT_SP, 1);
     message_t * message = phev_core_convertToMessage(headLightsOn);
@@ -416,7 +416,7 @@ uint8_t * getMacFromArg(int argc, char *argv[])
         {
             if(i == argc) 
             {
-                printf("No MAC passed");
+                printf("No MAC passed\n");
                 return NULL;
             } else {
                 printf("Got mac %s\n",argv[i+1]);
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
         }
         if(reg_completed) 
         {
-            printf("Completed registration - deregisering event handler");
+            printf("\nCompleted registration\n");
             phev_pipe_deregisterEventHandler(pipe,NULL);
             reg_completed = false;
         }
