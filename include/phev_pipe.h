@@ -31,14 +31,14 @@ typedef struct phevVinEvent_t
 } phevVinEvent_t;
 
 typedef struct phev_pipe_ctx_t phev_pipe_ctx_t;
-
+typedef void phevError_t;
 typedef int (* phevPipeEventHandler_t)(phev_pipe_ctx_t * ctx, phevPipeEvent_t * event);
-typedef void (*phev_pipe_started_handler_t)(phev_pipe_ctx_t * ctx);
+typedef void (* phevErrorHandler_t)(phevError_t * error);
 
 typedef struct phev_pipe_ctx_t {
     msg_pipe_ctx_t * pipe;
     phevPipeEventHandler_t eventHandler;
-    phev_pipe_started_handler_t started;
+    phevErrorHandler_t errorHandler;
     void * ctx;
 } phev_pipe_ctx_t;
 
@@ -52,7 +52,7 @@ typedef struct phev_pipe_settings_t {
     msg_pipe_transformer_t outputInputTransformer;
     msg_pipe_transformer_t outputOutputTransformer;
     msg_pipe_connectHook_t preConnectHook;
-    phev_pipe_started_handler_t started;
+    phevErrorHandler_t errorHandler;
     void * ctx;
 } phev_pipe_settings_t;
 

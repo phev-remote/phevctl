@@ -312,15 +312,14 @@ phev_pipe_ctx_t * create_pipe(const char * host)
         .outputOutputTransformer = (msg_pipe_transformer_t) phev_pipe_outputEventTransformer,
         .preConnectHook = NULL,
         .outputInputTransformer = (msg_pipe_transformer_t) phev_pipe_outputChainInputTransformer,
-        .started = (phev_pipe_started_handler_t) started,
     };
 
     return phev_pipe_createPipe(settings);
 }
 static bool reg_completed = false;
-void reg_complete(void)
+void reg_complete(phevRegisterCtx_t * ctx)
 {
-    printf("Registration complete");
+    printf("Registration complete VIN is %s",ctx->vin);
     reg_completed = true;
 
 }

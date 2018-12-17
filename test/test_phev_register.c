@@ -275,7 +275,7 @@ void test_phev_register_should_call_complete_when_registered(void)
     ctx->registrationRequest = true;
     ctx->ecu = true;
     ctx->remoteSecurity = true;
-    
+    ctx->vin = strdup("1234");
     msg_pipe_loop(pipe->pipe);
 
     TEST_ASSERT_EQUAL(1,test_phev_register_complete_called);
