@@ -2,5 +2,8 @@
 	path = external/Unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
 [submodule "external/msg_core"]
+        shallow = true
 	path = external/msg_core
 	url = https://github.com/papawattu/msg_core.git
+	
+	
