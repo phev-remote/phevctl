@@ -1,42 +1,160 @@
 #include <stdio.h>
+#include <argp.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "phev.h"
 
-int main_eventHandler(phevEvent_t * event)
+const char *argp_program_version = "1.0";
+const char *argp_program_bug_address = "jamie@wattu.com";
+static char doc[] = "Programe to .";
+static char args_doc[] = "[FILENAME]...";
+static struct argp_option options[] = { 
+    { "mac", 'm', 1, 0, "MAC address."},
+    { "init", 'i', 0, 0, "Initialise and register with the car - car must be in registration mode."},
+    { "host", 'h', 1, 0, "IP address of car - defaults to 192.168.8.46."},
+    { "port", 'p', 1, 0, "Port to use - defaults to 8080"},
+    { 0 } 
+};
+
+struct arguments {
+    bool init;
+    char * host;
+    uint8_t * mac;
+    int port;
+};
+
+uint8_t DEFAULT_MAC[] = {0,0,0,0,0,0};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    struct arguments *arguments = state->input;
+    switch (key) {
+    case 'p': {
+        uint16_t port = 8080;
+        if(arg != NULL) {
+           port = atoi(arg);
+        }
+        arguments->port = port;
+        break;
+    }
+    case 'm': {
+        if(arg != NULL)
+        {
+            if (strlen(arg) == 17)
+            {
+                uint8_t *mac = malloc(6);
+                sscanf(arg, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+                arguments->mac = mac;
+                break;
+            }
+        }
+        arguments->mac = DEFAULT_MAC;
+        break;
+    } 
+    case 'h': {
+        if(arg !=NULL) 
+        {
+            arguments->host = strdup(arg);
+        }
+    }
+    case 'i': 
+        arguments->init = true;
+        break;
+    
+    case ARGP_KEY_ARG: return 0;
+    default: return ARGP_ERR_UNKNOWN;
+    }   
+    return 0;
+}
+
+static int main_eventHandler(phevEvent_t * event)
 {
     printf("Event %d\n",event->type);
-    if(event->type == PHEV_REGISTER_UPDATE) 
+    switch (event->type)
     {
-        printf("Register : %d Data :",event->reg);
-        for(int i=0;i<event->length;i++)
+        case PHEV_REGISTER_UPDATE: 
         {
-            printf("%d ",event->data[i]);
+            printf("Register : %d Data :",event->reg);
+            for(int i=0;i<event->length;i++)
+            {
+                printf("%d ",event->data[i]);
+            }
+            printf("\n");
+            return 0;
         }
-        printf("\n");
+    
+        case PHEV_REGISTRATION_COMPLETE: 
+        {
+            printf("Registration Completed\n");
+            return 0;
+        }
+        case PHEV_CONNECTED:
+        {
+            printf("Connected to car\n");
+            return 0;
+        }
+        case PHEV_START:
+        {
+            printf("Started\n");
+            return 0;
+        }
+        case PHEV_VIN:
+        {
+            printf("VIN %s\n",event->data);
+            return 0;
+        }
+        case PHEV_ECU_VERSION:
+        {
+            printf("ECU Version\n");
+            return 0;
+        }
+        /*
+            PHEV_PIPE_GOT_VIN,
+    PHEV_PIPE_CONNECTED,
+    PHEV_PIPE_START_ACK,
+    PHEV_PIPE_REGISTRATION,
+    PHEV_PIPE_ECU_VERSION2,
+    PHEV_PIPE_REMOTE_SECURTY_PRSNT_INFO,
+    PHEV_PIPE_REG_DISP,
+    PHEV_PIPE_MAX_REGISTRATIONS,
+    PHEV_PIPE_REG_UPDATE,
+    PHEV_PIPE_REG_UPDATE_ACK,
+    */
     }
     return 0;
 }
 
-int main()
+static struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
+
+int main(int argc, char *argv[])
 {
-    char mac[] = {0,0,0,0,0,0};
+    struct arguments arguments;
+    
+    arguments.host = "192.168.8.46";
+    arguments.mac = DEFAULT_MAC;
+    arguments.port = 8080;
+    arguments.init = false;
+
+    argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
     phevSettings_t settings = {
-        .host = "192.168.1.177",
-        .mac = mac,
-        .port = 8080,
+        .host = arguments.host,
+        .mac = arguments.mac,
+        .port = arguments.port,
+        .registerDevice = arguments.init,
         .handler = main_eventHandler,
     };
-    printf("Hello\n");
+    printf("PHEV\n");
+    if(arguments.init) 
+    {
+        printf("Registering device\n");
+    }
+    printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
 
 
     phevCtx_t * ctx = phev_init(settings);
 
     phev_start(ctx);
-    int ch;
-    do
-    {
-        ch = getchar();
-        
-    } while(ch!='Q' && ch != 'q');
-
+    
 }
