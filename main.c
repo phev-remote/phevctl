@@ -3,18 +3,24 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <curl/curl.h>
+#include <pthread.h>
+
+#define LOG_LEVEL LOG_NONE
 
 #include "phev.h"
+#include "msg_mqtt_paho.h"
 
 const char *argp_program_version = "1.0";
 const char *argp_program_bug_address = "jamie@wattu.com";
 static char doc[] = "Programe to .";
 static char args_doc[] = "[FILENAME]...";
 static struct argp_option options[] = { 
-    { "mac", 'm', 1, 0, "MAC address."},
-    { "init", 'i', 0, 0, "Initialise and register with the car - car must be in registration mode."},
-    { "host", 'h', 1, 0, "IP address of car - defaults to 192.168.8.46."},
-    { "port", 'p', 1, 0, "Port to use - defaults to 8080"},
+    { "mac", 'm', 0,1, "MAC address.",0},
+    { "init", 'i', 0,0, "Initialise and register with the car - car must be in registration mode.",0},
+    { "host", 'h', 0,1, "IP address of car - defaults to 192.168.8.46.",0},
+    { "port", 'p', 0,1, "Port to use - defaults to 8080",0},
+    { "uri", 'u',0,1,"URI for MQTT server",0},
     { 0 } 
 };
 
@@ -23,6 +29,7 @@ struct arguments {
     char * host;
     uint8_t * mac;
     int port;
+    char * uri;
 };
 
 uint8_t DEFAULT_MAC[] = {0,0,0,0,0,0};
@@ -57,11 +64,18 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         {
             arguments->host = strdup(arg);
         }
+        break;
     }
     case 'i': 
         arguments->init = true;
         break;
-    
+    case 'u': {
+        if(arg !=NULL)
+        {
+            arguments->uri = strdup(arg);
+        }
+        break;
+    }
     case ARGP_KEY_ARG: return 0;
     default: return ARGP_ERR_UNKNOWN;
     }   
@@ -70,7 +84,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 static int main_eventHandler(phevEvent_t * event)
 {
-    printf("Event %d\n",event->type);
+    
     switch (event->type)
     {
         case PHEV_REGISTER_UPDATE: 
@@ -86,7 +100,7 @@ static int main_eventHandler(phevEvent_t * event)
     
         case PHEV_REGISTRATION_COMPLETE: 
         {
-            printf("Registration Completed\n");
+            printf("Registration Complete\n");
             return 0;
         }
         case PHEV_CONNECTED:
@@ -127,16 +141,34 @@ static int main_eventHandler(phevEvent_t * event)
 
 static struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
 
+void * main_thread(void * ctx)
+{
+    phev_start((phevCtx_t *) ctx);
+}
 int main(int argc, char *argv[])
 {
     struct arguments arguments;
+    phevCtx_t * ctx; 
+    
     
     arguments.host = "192.168.8.46";
+    arguments.uri = "tcp://localhost:1883";
     arguments.mac = DEFAULT_MAC;
     arguments.port = 8080;
     arguments.init = false;
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
+    mqttPahoSettings_t mqtt_settings = {
+        .uri = arguments.uri,
+        .clientId = "client",
+        .username = "user",
+        .password = "password",
+        .incomingTopic = "in",
+        .outgoingTopic = "out",
+    };
+    
+    messagingClient_t * client = msg_mqtt_paho_createMqttPahoClient(mqtt_settings);
 
     phevSettings_t settings = {
         .host = arguments.host,
@@ -144,17 +176,35 @@ int main(int argc, char *argv[])
         .port = arguments.port,
         .registerDevice = arguments.init,
         .handler = main_eventHandler,
+        .in = client,
     };
     printf("PHEV\n");
+
+    if(curl_global_init(CURL_GLOBAL_ALL)) {
+        fprintf(stderr, "Fatal: The initialization of libcurl has failed.\n");
+        return EXIT_FAILURE;
+    }
     if(arguments.init) 
     {
-        printf("Registering device\n");
+	    printf("Registering device\n");
+	    printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
+	    ctx = phev_registerDevice(settings);
+    } else {
+	
+    	printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
+    	ctx = phev_init(settings);
     }
-    printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
 
+    pthread_t main;
 
-    phevCtx_t * ctx = phev_init(settings);
-
-    phev_start(ctx);
+    int ret = pthread_create( &main, NULL, main_thread, (void*) ctx);
+    
+    char ch;
+    do {
+        ch = getchar();
+    } while (ch !='x');
+    
+    printf("Exiting\n");
+    exit(0);
     
 }
