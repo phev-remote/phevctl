@@ -89,12 +89,14 @@ static int main_eventHandler(phevEvent_t * event)
     {
         case PHEV_REGISTER_UPDATE: 
         {
+#ifdef DISPLAY_REGS
             printf("Register : %d Data :",event->reg);
             for(int i=0;i<event->length;i++)
             {
                 printf("%d ",event->data[i]);
             }
             printf("\n");
+#endif
             return 0;
         }
     
