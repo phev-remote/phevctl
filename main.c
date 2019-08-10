@@ -3,14 +3,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <curl/curl.h>
 #include <pthread.h>
 
 #define LOG_LEVEL LOG_NONE
 
 #include "phev.h"
+#ifdef MQTT_PAHO
 #include "msg_mqtt_paho.h"
-
+#endif
 const char *argp_program_version = "1.0";
 const char *argp_program_bug_address = "jamie@wattu.com";
 static char doc[] = "Programe to .";
@@ -159,6 +159,7 @@ int main(int argc, char *argv[])
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
+#ifdef MQTT_PAHO
     mqttPahoSettings_t mqtt_settings = {
         .uri = arguments.uri,
         .clientId = "client",
@@ -178,12 +179,17 @@ int main(int argc, char *argv[])
         .handler = main_eventHandler,
         .in = client,
     };
+#else 
+    phevSettings_t settings = {
+        .host = arguments.host,
+        .mac = arguments.mac,
+        .port = arguments.port,
+        .registerDevice = arguments.init,
+        .handler = main_eventHandler,
+    };
+#endif
     printf("PHEV\n");
 
-    if(curl_global_init(CURL_GLOBAL_ALL)) {
-        fprintf(stderr, "Fatal: The initialization of libcurl has failed.\n");
-        return EXIT_FAILURE;
-    }
     if(arguments.init) 
     {
 	    printf("Registering device\n");
