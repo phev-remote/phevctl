@@ -8,4 +8,6 @@ RUN cd /src/phev-core && mkdir build && cd build && cmake .. && make && make ins
 COPY . /src/adapter
 WORKDIR /src/adapter
 RUN mkdir -p build && cd build && cmake .. && make 
+ENTRYPOINT ["/src/adapter/build/adapter"]
+CMD []
 
