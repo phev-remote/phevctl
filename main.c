@@ -276,7 +276,7 @@ void * main_thread(void * ctx)
 void print_intro()
 {
     printf("Mitsubishi Outlander PHEV Remote CLI - ");
-    printf("Designed and coded by Jamie Nuttall 2019\n\n");
+    printf("Designed and coded by Jamie Nuttall 2019\nMIT License\n\n");
 
 }
 int main(int argc, char *argv[])
