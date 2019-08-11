@@ -1,10 +1,10 @@
 # Build Instructions
 
-Requirements
+## Requirements
 
 Linux based OS - Tested on Debian and variants 
 
-## Debian
+## Debian based OS
 
 ```
 sudo apt-get install build-essential cmake git
