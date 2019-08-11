@@ -5,25 +5,26 @@
 #include <string.h>
 #include <pthread.h>
 
+#define VERSION "0.0.1"
 #define LOG_LEVEL LOG_NONE
 
 #include "phev.h"
 #ifdef MQTT_PAHO
 #include "msg_mqtt_paho.h"
 #endif
-const char *argp_program_version = "1.0";
+const char *argp_program_version = "Version\t" VERSION;
 const char *argp_program_bug_address = "jamie@wattu.com";
-static char doc[] = "Programe to .";
-static char args_doc[] = "COMMAND [VALUES]...";
+static char doc[] = "\n\nProgram to control the car via the remote WiFi interface.  Requires this device to be connected to the REMOTE**** access point with a valid IP address, which is on the 192.168.8.x subnet.\n\nTHIS PROGRAM COMES WITH NO WARRANTY ANY DAMAGE TO THE CAR OR ANY OTHER EQUIPMENT IS AT THE USERS OWN RISK.";
+static char args_doc[] = "register\nbattery\naircon [on|off]\nheadlights [on|off]";
 static struct argp_option options[] = { 
     { "mac", 'm', "<MAC ADDRESS>",0, "MAC address."},
-    { "init", 'i', 0,0, "Initialise and register with the car - car must be in registration mode."},
-    { "host", 'h', "<HOST NAME>",0, "IP address of car - defaults to 192.168.8.46."},
-    { "port", 'p', "<PORT NUMBER>",0, "Port to use - defaults to 8080"},
-    { "uri", 'u',"<URI>",0,"URI for MQTT server"},
-    { "topic",'t',"<TOPIC NAME>",0,"MQTT output topic"},
-    { "cmdtopic",'c',"<COMMAND TOPIC NAME>",0,"MQTT command topic"},
-    { "verbose",'v',0,0,"Verbose"},
+//    { "init", 'i', 0,0, "Initialise and register with the car - car must be in registration mode."},
+    { "host", 'h', "<HOST NAME>",OPTION_HIDDEN, "IP address of car - defaults to 192.168.8.46."},
+    { "port", 'p', "<PORT NUMBER>",OPTION_HIDDEN, "Port to use - defaults to 8080"},
+    { "uri", 'u',"<URI>",OPTION_HIDDEN,"URI for MQTT server"},
+    { "topic",'t',"<TOPIC NAME>",OPTION_HIDDEN,"MQTT output topic"},
+    { "cmdtopic",'c',"<COMMAND TOPIC NAME>",OPTION_HIDDEN,"MQTT command topic"},
+    { "verbose",'v',0,0,"Verbose output"},
     { 0 } 
 };
 
@@ -38,21 +39,29 @@ struct arguments {
     bool verbose;
 };
 
+struct arguments arguments;
+
 uint8_t DEFAULT_MAC[] = {0,0,0,0,0,0};
 char * remaining_args = NULL, num_remaining_args= 0;
 
 #define HEADLIGHTS "headlights"
 #define BATTERY "battery"
+#define AIRCON "aircon"
+#define REGISTER "register"
 #define ON "on"
 #define OFF "off"
 
-enum commands { CMD_UNSET, CMD_HEADLIGHTS, CMD_BATTERY };
+enum commands { CMD_UNSET, CMD_STATUS, CMD_REGISTER, CMD_HEADLIGHTS, CMD_BATTERY, CMD_AIRCON };
 
 enum commands command = CMD_UNSET;
 bool bool_value;
 
 int process_command(char * arg, int arg_num)
 {
+    if(strcmp(arg,REGISTER) == 0 && arg_num ==0)
+    {
+        command = CMD_REGISTER;
+    }
     if(strcmp(arg,HEADLIGHTS) == 0 && arg_num == 0)
     {
         command = CMD_HEADLIGHTS;
@@ -60,6 +69,10 @@ int process_command(char * arg, int arg_num)
     if(strcmp(arg,BATTERY) == 0 && arg_num == 0)
     {
         command = CMD_BATTERY;
+    }
+    if(strcmp(arg,AIRCON) == 0 && arg_num == 0)
+    {
+        command = CMD_AIRCON;
     }
     if(strcmp(arg,ON) == 0 && arg_num == 1)
     {
@@ -103,9 +116,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         }
         break;
     }
-    case 'i': 
-        arguments->init = true;
-        break;
+    //case 'i': 
+    //    arguments->init = true;
+    //    break;
     case 'u': {
         if(arg !=NULL)
         {
@@ -138,7 +151,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         } 
         break;
     case ARGP_KEY_ARG: 
-        if(state->arg_num >=2)
+        if(state->arg_num >= 2)
         {
             argp_usage(state);
         } else {
@@ -155,9 +168,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 
-static void headLightCallback(phevCtx_t * ctx, void * value)
+static void operationCallback(phevCtx_t * ctx, void * value)
 {
-    printf("Head light operation successful\n");
+    printf("Operation successful\n");
     phev_exit(ctx);
     exit(0);
 
@@ -206,6 +219,7 @@ static int main_eventHandler(phevEvent_t * event)
         case PHEV_REGISTRATION_COMPLETE: 
         {
             printf("Registration Complete\n");
+            exit(0);
             return 0;
         }
         case PHEV_CONNECTED:
@@ -219,7 +233,11 @@ static int main_eventHandler(phevEvent_t * event)
         }
         case PHEV_VIN:
         {
-            //printf("VIN %s\n",event->data);
+            if(arguments.verbose)
+            {
+                printf("VIN number : %s\n",event->data);
+            }
+            
             return 0;
         }
         case PHEV_ECU_VERSION:
@@ -231,14 +249,16 @@ static int main_eventHandler(phevEvent_t * event)
                 switch(command)
                 {
                     case CMD_HEADLIGHTS: {
-                        printf("Turning head lights %s\n",(bool_value?"ON":"OFF"));
-                        phev_headLights(event->ctx, bool_value, headLightCallback);        
+                        printf("Turning head lights %s : ",(bool_value?"ON":"OFF"));
+                        phev_headLights(event->ctx, bool_value, operationCallback);        
+                        break;
+                    }
+                    case CMD_AIRCON: {
+                        printf("Turning air conditioning %s : ",(bool_value?"ON":"OFF"));
+                        phev_airCon(event->ctx, bool_value, operationCallback);        
                         break;
                     }
                 }
-                //printf("Process command %d %s\n",command, (bool_value?"ON":"OFF"));
-                //phev_exit(event->ctx);
-                //exit(0);
             }
             return 0;
         }
@@ -255,14 +275,14 @@ void * main_thread(void * ctx)
 }
 void print_intro()
 {
-    printf("Mitsubishi Outlander PHEV Remote CLI\n");
-    printf("Designed and coded by Jamie Nuttall 2019\n");
+    printf("Mitsubishi Outlander PHEV Remote CLI - ");
+    printf("Designed and coded by Jamie Nuttall 2019\n\n");
 
 }
 int main(int argc, char *argv[])
 {
     print_intro();
-    struct arguments arguments;
+    
     phevCtx_t * ctx; 
     
     
@@ -311,7 +331,7 @@ int main(int argc, char *argv[])
     };
 #endif
 
-    if(arguments.init) 
+    if(command == CMD_REGISTER) 
     {
 	    printf("Registering device\n");
 	    printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
