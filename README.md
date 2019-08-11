@@ -3,7 +3,6 @@
 This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
 It uses the phev library found [here](https://github.com/phev-remote/phevcore).
 
-The quickest way to get started is using the docker build but instructions on how to manually build can be found [here]((https://github.com/phev-remote/phevctl/README.md#manual))
 ## License
 
 MIT License
@@ -29,7 +28,7 @@ MIT License
 >  THE SOFTWARE.
 
 ## Building
-
+The quickest way to get started is using the docker build but instructions on how to manually build can be found [here]((https://github.com/phev-remote/phevctl/README.md#manual))
 ### Docker build
 
 Ensure docker is running
@@ -107,4 +106,20 @@ Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
 
 Report bugs to jamie@wattu.com.
+```
+
+Connect to the cars Wifi access point, which starts REMOTExxxxx.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
+Locate your Wi-Fi details and you should have a line that says your IP address.
+### Windows command prompt
+```
+ipconfig 
+...
+IPv4 Address. . . . . . . . . . . : 192.168.8.47
+```
+### Linux
+```
+ifconfig -a 
+...
+wlan0:
+   inet 192.168.8.47
 ```
