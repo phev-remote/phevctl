@@ -133,7 +133,7 @@ docker run papawattu/phevctl register
 ```
 You should see the message that the car is now registered.
 ## Using commands
-You can then follow the help instructions to get the battery level and switch on the air conditioning and head lights.
+You can then follow the help instructions to get the battery level and switch on and off the air conditioning and head lights.
 ```
 docker run papawattu/phevctl battery
 
