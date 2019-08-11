@@ -4,7 +4,7 @@
 
 Linux based OS - Tested on Debian and variants including WSL & Raspberry Pi.
 
-## Debian based OS
+### Debian based OS
 
 ```
 sudo apt-get install build-essential cmake git
