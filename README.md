@@ -137,7 +137,11 @@ wlan0:
 
 ## Registering your device
 
-As in with the official app the device needs to be registered with the car.  To do this issue the following command.
+As in with the official app the device needs to be registered with the car.  
+
+Firstly put your car into registration mode instructions [here](https://www.mitsubishi-motors.com/en/products/outlander_phev/app/remote/jizen.html)
+
+Then issue the following command.
 ```
 docker run papawattu/phevctl register
 ```
