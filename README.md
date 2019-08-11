@@ -3,9 +3,36 @@
 This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
 It uses the phev library found [here](https://github.com/phev-remote/phevcore).
 
-The quickest way to get started is using the docker build but instructions on how to manually build can be found [here]((https://github.com/phev-remote/phevctl/README.md#manual))
+## License
+
+MIT License
+
+>  Copyright (c) 2019 Jamie Nuttall
+>
+>  Permission is hereby granted, free of charge, to any person obtaining a copy
+>  of this software and associated documentation files (the "Software"), to deal
+>  in the Software without restriction, including without limitation the rights
+>  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+>  copies of the Software, and to permit persons to whom the Software is
+>  furnished to do so, subject to the following conditions:
+>
+>  The above copyright notice and this permission notice shall be included in
+>  all copies or substantial portions of the Software.
+>
+>  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+>  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+>  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+>  THE SOFTWARE.
 
 ## Building
+The quickest way to get started is using the existing docker image ...
+```
+docker run papawattu/phevctl --help
+```
+Or if you'd prefer to build you own image.
 
 ### Docker build
 
@@ -85,3 +112,38 @@ for any corresponding short options.
 
 Report bugs to jamie@wattu.com.
 ```
+
+Make sure your device is in range of the cars WiFI and connect to the access point, which starts REMOTExxxxx.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
+Locate your Wi-Fi details and you should have a line that says your IP address.
+
+### Windows command prompt
+```
+ipconfig 
+...
+IPv4 Address. . . . . . . . . . . : 192.168.8.47
+```
+### Linux
+```
+ifconfig -a 
+...
+wlan0:
+   inet 192.168.8.47
+```
+
+## Registering your device
+
+As in with the official app the device needs to be registered with the car.  To do this issue the following command.
+```
+docker run papawattu/phevctl register
+```
+You should see the message that the car is now registered.
+## Using commands
+You can then follow the help instructions to get the battery level and switch on and off the air conditioning and head lights.
+```
+docker run papawattu/phevctl battery
+
+docker run papawattu/phevctl aircon on
+
+docker run papawattu/phevctl headlights on
+```
+Have fun!!! 
