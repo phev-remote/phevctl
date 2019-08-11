@@ -35,7 +35,7 @@ make
 sudo make install
 cd ../../
 
-git clone https://guthub.com/phev-remote/phevctl.git
+git clone https://github.com/phev-remote/phevctl.git
 cd phevctl
 mkdir build
 cd build
