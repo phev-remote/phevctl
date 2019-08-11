@@ -108,8 +108,9 @@ for any corresponding short options.
 Report bugs to jamie@wattu.com.
 ```
 
-Connect to the cars Wifi access point, which starts REMOTExxxxx.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
+Make sure your device is in range of the cars WiFI and connect to the access point, which starts REMOTExxxxx.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
 Locate your Wi-Fi details and you should have a line that says your IP address.
+
 ### Windows command prompt
 ```
 ipconfig 
@@ -123,3 +124,21 @@ ifconfig -a
 wlan0:
    inet 192.168.8.47
 ```
+
+## Registering your device
+
+As in with the official app the device needs to be registered with the car.  To do this issue the following command.
+```
+docker run papawattu/phevctl register
+```
+You should see the message that the car is now registered.
+## Using commands
+You can then follow the help instructions to get the battery level and switch on the air conditioning and head lights.
+```
+docker run papawattu/phevctl battery
+
+docker run papawattu/phevctl aircon on
+
+docker run papawattu/phevctl headlights on
+```
+Have fun!!! 
