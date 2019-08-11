@@ -2,7 +2,7 @@
 
 ## Requirements
 
-Linux based OS - Tested on Debian and variants 
+Linux based OS - Tested on Debian and variants including WSL & Raspberry Pi.
 
 ## Debian based OS
 
