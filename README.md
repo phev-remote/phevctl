@@ -28,7 +28,12 @@ MIT License
 >  THE SOFTWARE.
 
 ## Building
-The quickest way to get started is using the docker build but instructions on how to manually build can be found [here]((https://github.com/phev-remote/phevctl/README.md#manual))
+The quickest way to get started is using the existing docker image ...
+```
+docker run papawattu/phevctl --help
+```
+Or if you'd prefer to build you own image.
+
 ### Docker build
 
 Ensure docker is running
