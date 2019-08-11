@@ -112,8 +112,13 @@ for any corresponding short options.
 
 Report bugs to jamie@wattu.com.
 ```
+## Building manually
 
-Make sure your device is in range of the cars WiFI and connect to the access point, which starts REMOTExxxxx.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
+Please see the [BUILD.md](https://github.com/phev-remote/phevctl/blob/master/BUILD.md).
+
+## Usage
+
+Make sure your device is in range of the cars WiFI and connect to the access point, which starts __REMOTExxxxx__.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
 Locate your Wi-Fi details and you should have a line that says your IP address.
 
 ### Windows command prompt
