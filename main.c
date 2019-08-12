@@ -52,7 +52,7 @@ char * remaining_args = NULL, num_remaining_args= 0;
 #define GET "get"
 #define ON "on"
 #define OFF "off"
-#define WAIT_FOR_REG_MAX 39
+#define WAIT_FOR_REG_MAX 40
 
 enum commands { CMD_UNSET, CMD_STATUS, CMD_REGISTER, CMD_HEADLIGHTS, CMD_BATTERY, CMD_AIRCON, CMD_GET_REG_VAL, CMD_DISPLAY_REG };
 
@@ -240,6 +240,7 @@ static int main_eventHandler(phevEvent_t * event)
                         printf("%02X ",event->data[i]);
                     }
                     printf("\n");
+                    break;
                 }
                 case CMD_GET_REG_VAL: {
                     phevData_t * reg = phev_getRegister(event->ctx, uint_value);
@@ -292,8 +293,10 @@ static int main_eventHandler(phevEvent_t * event)
         }
         case PHEV_ECU_VERSION:
         {
-            printf("ECU Version : %s\n",event->data);
-
+            if(arguments.verbose)
+            {
+                printf("ECU Version : %s\n",event->data);
+            }
             if(command != CMD_UNSET)
             {
                 switch(command)
@@ -326,12 +329,12 @@ void * main_thread(void * ctx)
 void print_intro()
 {
     printf("Mitsubishi Outlander PHEV Remote CLI - ");
-    printf("Designed and coded by Jamie Nuttall 2019\nMIT License\n\n\nType 'x' then enter to quit.\n");
-
+    printf("Designed and coded by Jamie Nuttall 2019\nMIT License\n\n");
+    printf("Type 'x' then enter to quit.\n");
+    
 }
 int main(int argc, char *argv[])
 {
-    print_intro();
     
     phevCtx_t * ctx; 
     
@@ -380,6 +383,8 @@ int main(int argc, char *argv[])
         .handler = main_eventHandler,
     };
 #endif
+
+    print_intro();
 
     if(command == CMD_REGISTER) 
     {
