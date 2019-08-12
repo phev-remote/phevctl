@@ -15,7 +15,7 @@
 const char *argp_program_version = "Version\t" VERSION;
 const char *argp_program_bug_address = "jamie@wattu.com";
 static char doc[] = "\n\nProgram to control the car via the remote WiFi interface.  Requires this device to be connected to the REMOTE**** access point with a valid IP address, which is on the 192.168.8.x subnet.\n\nTHIS PROGRAM COMES WITH NO WARRANTY ANY DAMAGE TO THE CAR OR ANY OTHER EQUIPMENT IS AT THE USERS OWN RISK.";
-static char args_doc[] = "register\nbattery\naircon [on|off]\nheadlights [on|off]";
+static char args_doc[] = "register\nbattery\naircon [on|off]\nheadlights [on|off]\nmonitor\nget <register>";
 static struct argp_option options[] = { 
     { "mac", 'm', "<MAC ADDRESS>",0, "MAC address."},
 //    { "init", 'i', 0,0, "Initialise and register with the car - car must be in registration mode."},
@@ -48,13 +48,19 @@ char * remaining_args = NULL, num_remaining_args= 0;
 #define BATTERY "battery"
 #define AIRCON "aircon"
 #define REGISTER "register"
+#define MONITOR "monitor"
+#define GET "get"
 #define ON "on"
 #define OFF "off"
+#define WAIT_FOR_REG_MAX 39
 
-enum commands { CMD_UNSET, CMD_STATUS, CMD_REGISTER, CMD_HEADLIGHTS, CMD_BATTERY, CMD_AIRCON };
+enum commands { CMD_UNSET, CMD_STATUS, CMD_REGISTER, CMD_HEADLIGHTS, CMD_BATTERY, CMD_AIRCON, CMD_GET_REG_VAL, CMD_DISPLAY_REG };
 
 enum commands command = CMD_UNSET;
 bool bool_value;
+uint8_t uint_value;
+
+int wait_for_regs = 0;
 
 int process_command(char * arg, int arg_num)
 {
@@ -74,6 +80,14 @@ int process_command(char * arg, int arg_num)
     {
         command = CMD_AIRCON;
     }
+    if(strcmp(arg,GET) == 0 && arg_num == 0)
+    {
+        command = CMD_GET_REG_VAL;
+    }
+    if(strcmp(arg,MONITOR) == 0 && arg_num == 0)
+    {
+        command = CMD_DISPLAY_REG;
+    }
     if(strcmp(arg,ON) == 0 && arg_num == 1)
     {
         bool_value = true;
@@ -82,6 +96,10 @@ int process_command(char * arg, int arg_num)
     {
         bool_value = false;
     } 
+    if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]) && arg_num == 1)
+    {
+        uint_value = atoi(arg);
+    }
     return 0;
 }
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -145,7 +163,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     }
     case ARGP_KEY_END:
-        if(state->arg_num <2)
+        if(state->arg_num <1)
         {
             argp_usage(state);
         } 
@@ -188,14 +206,16 @@ static int main_eventHandler(phevEvent_t * event)
     {
         case PHEV_REGISTER_UPDATE: 
         {
-#ifdef DISPLAY_REGS
-            printf("Register : %d Data :",event->reg);
-            for(int i=0;i<event->length;i++)
+//#ifdef DISPLAY_REGS
+
+//#endif
+            if(arguments.verbose)
             {
-                printf("%d ",event->data[i]);
+                if(event->reg ==  KO_WF_DATE_INFO_SYNC_EVR)
+                {
+                    printf("Date sync 20%d-%d-%d %d:%0d:%0d\n",event->data[0],event->data[1],event->data[2],event->data[3],event->data[4],event->data[5]);
+                }
             }
-            printf("\n");
-#endif
             switch(command)
             {
                 case CMD_BATTERY: 
@@ -210,6 +230,36 @@ static int main_eventHandler(phevEvent_t * event)
                         printf("Battery level %d\n",batt);
                         exit(0);
                     }
+                    break;
+                }
+                case CMD_DISPLAY_REG:
+                {
+                    printf("Register : %d Data :",event->reg);
+                    for(int i=0;i<event->length;i++)
+                    {
+                        printf("%02X ",event->data[i]);
+                    }
+                    printf("\n");
+                }
+                case CMD_GET_REG_VAL: {
+                    phevData_t * reg = phev_getRegister(event->ctx, uint_value);
+                    if(reg == NULL)
+                    {
+                        if(wait_for_regs > WAIT_FOR_REG_MAX)
+                        {
+                            printf("REGISTER TIMEOUT\n");
+                            exit(0);
+                        }
+                        wait_for_regs ++;
+                        return 0;
+                    }
+                    printf("Get register %d : ",uint_value);
+                    for(int i=0;i<reg->length;i++)
+                    {
+                        printf("%02X ",reg->data[i]);
+                    }
+                    printf("\n");
+                    exit(0);
                     break;
                 }
             }
@@ -242,7 +292,7 @@ static int main_eventHandler(phevEvent_t * event)
         }
         case PHEV_ECU_VERSION:
         {
-            //printf("ECU Version\n");
+            printf("ECU Version : %s\n",event->data);
 
             if(command != CMD_UNSET)
             {
@@ -276,7 +326,7 @@ void * main_thread(void * ctx)
 void print_intro()
 {
     printf("Mitsubishi Outlander PHEV Remote CLI - ");
-    printf("Designed and coded by Jamie Nuttall 2019\nMIT License\n\n");
+    printf("Designed and coded by Jamie Nuttall 2019\nMIT License\n\n\nType 'x' then enter to quit.\n");
 
 }
 int main(int argc, char *argv[])
