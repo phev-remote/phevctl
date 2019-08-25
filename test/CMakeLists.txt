@@ -1,16 +1,28 @@
-find_library(UNITY_LIB Unity)
+find_package(unity)
 
-add_executable(test_runner
-    test_runner.c
+enable_testing()
+
+
+add_library(phevctl STATIC
+    ../src/phevargs.c
 )
+
+target_include_directories(phevctl PUBLIC ../include)
+
+add_library(test_runner OBJECT test_runner.c)
 
 target_link_libraries(test_runner
-    adapter
-    "${PHEV_LIB}" 
-    "${MSG_CORE_LIB}" 
-    "${CJSON_LIB}" 
-    pthread
-    ${UNITY_LIB}
+    phevctl
+    unity
 )
+add_executable(test_phev_args test_phev_args.c $<TARGET_OBJECTS:test_runner>)
+target_link_libraries(test_phev_args
+    phevctl
+    unity
+)
+add_test(NAME phev_args COMMAND test_phev_args)
 
-add_test(test_adapter test_runner)
+
+
+
+
