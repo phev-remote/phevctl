@@ -8,6 +8,7 @@
 #define LOG_LEVEL LOG_NONE
 
 #include "phev.h"
+#include "phevargs.h"
 #ifdef MQTT_PAHO
 #include "msg_mqtt_paho.h"
 #endif
@@ -34,28 +35,28 @@ static void batteryLevelCallback(phevCtx_t * ctx, void * level)
 }
 static int main_eventHandler(phevEvent_t * event)
 {
-/*    
+    phevCtx_t * ctx = event->ctx;
+
+    phev_args_opts_t * opts = (phev_args_opts_t *) phev_getUserCtx(ctx);
+
     switch (event->type)
     {
         case PHEV_REGISTER_UPDATE: 
         {
-//#ifdef DISPLAY_REGS
-
-//#endif
-            if(arguments.verbose)
+            if(opts->verbose)
             {
                 if(event->reg ==  KO_WF_DATE_INFO_SYNC_EVR)
                 {
                     printf("Date sync 20%d-%d-%d %d:%0d:%0d\n",event->data[0],event->data[1],event->data[2],event->data[3],event->data[4],event->data[5]);
                 }
             }
-            switch(command)
+            switch(opts->command)
             {
                 case CMD_BATTERY: 
                 {
                     if(event->reg == KO_WF_BATT_LEVEL_INFO_REP_EVR)
                     {
-                        int batt = phev_batteryLevel(event->ctx);
+                        int batt = phev_batteryLevel(ctx);
                         if(batt < 0)
                         {
                             return 0;
@@ -76,7 +77,7 @@ static int main_eventHandler(phevEvent_t * event)
                     break;
                 }
                 case CMD_GET_REG_VAL: {
-                    phevData_t * reg = phev_getRegister(event->ctx, uint_value);
+                    phevData_t * reg = phev_getRegister(ctx, opts->reg_operand);
                     if(reg == NULL)
                     {
                         if(wait_for_regs > WAIT_FOR_REG_MAX)
@@ -87,7 +88,7 @@ static int main_eventHandler(phevEvent_t * event)
                         wait_for_regs ++;
                         return 0;
                     }
-                    printf("Get register %d : ",uint_value);
+                    printf("Get register %d : ",opts->reg_operand);
                     for(int i=0;i<reg->length;i++)
                     {
                         printf("%02X ",reg->data[i]);
@@ -117,7 +118,7 @@ static int main_eventHandler(phevEvent_t * event)
         }
         case PHEV_VIN:
         {
-            if(arguments.verbose)
+            if(opts->verbose)
             {
                 printf("VIN number : %s\n",event->data);
             }
@@ -126,22 +127,22 @@ static int main_eventHandler(phevEvent_t * event)
         }
         case PHEV_ECU_VERSION:
         {
-            if(arguments.verbose)
+            if(opts->verbose)
             {
                 printf("ECU Version : %s\n",event->data);
             }
-            if(command != CMD_UNSET)
+            if(opts->command != CMD_UNSET && opts->command != CMD_INVALID)
             {
-                switch(command)
+                switch(opts->command)
                 {
                     case CMD_HEADLIGHTS: {
-                        printf("Turning head lights %s : ",(bool_value?"ON":"OFF"));
-                        phev_headLights(event->ctx, bool_value, operationCallback);        
+                        printf("Turning head lights %s : ",(opts->operand_on?"ON":"OFF"));
+                        phev_headLights(event->ctx, opts->operand_on, operationCallback);        
                         break;
                     }
                     case CMD_AIRCON: {
-                        printf("Turning air conditioning %s : ",(bool_value?"ON":"OFF"));
-                        phev_airCon(event->ctx, bool_value, operationCallback);        
+                        printf("Turning air conditioning %s : ",(opts->operand_on?"ON":"OFF"));
+                        phev_airCon(event->ctx, opts->operand_on, operationCallback);        
                         break;
                     }
                 }
@@ -150,7 +151,7 @@ static int main_eventHandler(phevEvent_t * event)
         }
 
     }
-    */
+    
     return 0;
 }
 
@@ -176,25 +177,15 @@ int main(int argc, char *argv[])
         printf("%s\n",argv[i]);
     }
     exit(0);
-/*
-    arguments.host = "192.168.8.46";
-    arguments.uri = "tcp://localhost:1883";
-    arguments.mac = DEFAULT_MAC;
-    arguments.port = 8080;
-    arguments.init = false;
-    arguments.command_topic = "defaultin";
-    arguments.topic = "defaultout";
-    arguments.verbose = false;
 
-    argp_parse(&argp, argc, argv, 0, 0, &arguments);
-
+    phev_args_opts_t * opts = phev_args_parse(argc,argv);
 
 #ifdef MQTT_PAHO
     printf("MQTT config\n");
-    printf("URI %s\nIncoming Topic %s\nOutgoing Topic %s\n",arguments.uri,arguments.command_topic,arguments.topic);
+    printf("URI %s\nIncoming Topic %s\nOutgoing Topic %s\n",opts->uri,opts->command_topic,opts->topic);
     
     mqttPahoSettings_t mqtt_settings = {
-        .uri = arguments.uri,
+        .uri = opts->uri,
         .clientId = "client",
         .username = "user",
         .password = "password",
@@ -205,34 +196,36 @@ int main(int argc, char *argv[])
     messagingClient_t * client = msg_mqtt_paho_createMqttPahoClient(mqtt_settings);
 
     phevSettings_t settings = {
-        .host = arguments.host,
-        .mac = arguments.mac,
-        .port = arguments.port,
-        .registerDevice = arguments.init,
+        .host = opts->host,
+        .mac = opts->mac,
+        .port = opts->port,
+        .registerDevice = opts->init,
         .handler = main_eventHandler,
         .in = client,
     };
 #else 
     phevSettings_t settings = {
-        .host = arguments.host,
-        .mac = arguments.mac,
-        .port = arguments.port,
-        .registerDevice = arguments.init,
+        .host = opts->host,
+        .mac = opts->mac,
+        .port = opts->port,
+        .registerDevice = opts->init,
         .handler = main_eventHandler,
+        .ctx = (void *) opts,
     };
 #endif
 
     print_intro();
 
-    if(command == CMD_REGISTER) 
+
+    if(opts->command == CMD_REGISTER) 
     {
 	    printf("Registering device\n");
-	    printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
+	    printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",opts->host,opts->port,opts->mac[0],opts->mac[1],opts->mac[2],opts->mac[3],opts->mac[4],opts->mac[5]);
 	    ctx = phev_registerDevice(settings);
     } else {
-        if(arguments.verbose)
+        if(opts->verbose)
         {
-            printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",arguments.host,arguments.port,arguments.mac[0],arguments.mac[1],arguments.mac[2],arguments.mac[3],arguments.mac[4],arguments.mac[5]);
+            printf("Host : %s\nPort : %d\nMAC : %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n",opts->host,opts->port,opts->mac[0],opts->mac[1],opts->mac[2],opts->mac[3],opts->mac[4],opts->mac[5]);
         }
     	ctx = phev_init(settings);
     }
@@ -247,7 +240,6 @@ int main(int argc, char *argv[])
     } while (ch !='x' && phev_running(ctx));
     
     printf("Exiting\n");
-    */
     exit(0);
     
 }
