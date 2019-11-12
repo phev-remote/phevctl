@@ -12,4 +12,16 @@ void test_phev_args_headlights_no_operand(void);
 void test_phev_args_aircon_on(void);
 void test_phev_args_aircon_off(void);
 void test_phev_args_aircon_no_operand(void);
+
+void test_phev_args_verbose_flag_on(void);
+void test_phev_args_verbose_off_by_default(void);
+
+void test_phev_args_host_default(void);
+void test_phev_args_host_as_arg(void);
+
+void test_phev_args_port_default(void);
+void test_phev_args_port_as_arg(void);
+void test_phev_args_port_as_arg_invalid(void);
+
+void test_phev_args_get(void);
 #endif

@@ -23,6 +23,22 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_GET_REG_VAL:
+        {
+            if(arg_num == 2)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_BATTERY:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
     }
     return 1;
 }
@@ -58,6 +74,19 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             opts->error_message = "Too many operands";
             break;
         }
+        case CMD_GET_REG_VAL: {
+            if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]) && arg_num == 1)
+            {
+                opts->reg_operand = atoi(arg);
+            } else {
+                opts->error = true;
+                opts->error_message = "Not a number";
+            }
+            break;
+        }
+        case CMD_BATTERY: {
+            break;
+        }
     }
     if(!opts->error)
     {
@@ -74,7 +103,6 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     }
     if(strcmp(arg,HEADLIGHTS) == 0 && arg_num == 0)
     {
-        printf("Arg num %d\n",arg_num);
         opts->command = CMD_HEADLIGHTS;
     }
     if(strcmp(arg,BATTERY) == 0 && arg_num == 0)
@@ -93,18 +121,6 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     {
         opts->command = CMD_DISPLAY_REG;
     }
-    if(strcmp(arg,ON) == 0 && arg_num == 1)
-    {
-        opts->operand_on = true;
-    }
-    if(strcmp(arg,OFF) == 0 && arg_num == 1)
-    {
-        opts->operand_on = false;
-    } 
-    if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]) && arg_num == 1)
-    {
-        //opts->uint_value = atoi(arg);
-    }
     return 0;
 }
 static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state) {
@@ -115,8 +131,18 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
         uint16_t port = 8080;
         if(arg != NULL) {
            port = atoi(arg);
+           if(port == 0)
+           {
+               opts->error = true;
+               opts->error_message = "Port number invalid";
+               break;
+           }
+        } else {
+            opts->error = true;
+            opts->error_message = "No port number";
+            break;
         }
-        //arguments->port = port;
+        opts->port = port;
         break;
     }
     case 'm': {
@@ -126,49 +152,44 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
             {
                 uint8_t *mac = malloc(6);
                 sscanf(arg, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                //arguments->mac = mac;
+                if(mac != NULL)
+                {
+                    opts->mac = mac;
+                } else {
+                    opts->error = true;
+                    opts->error_message = "MAC invalid";
+                }
+                break;
+            } else {
+                opts->error = true;
+                opts->error_message = "MAC invalid";
                 break;
             }
         }
-        //arguments->mac = DEFAULT_MAC;
+        opts->mac = PHEV_ARGS_DEFAULT_MAC;
         break;
     } 
     case 'h': {
         if(arg !=NULL) 
         {
-      //      arguments->host = strdup(arg);
+            opts->host = strdup(arg);
         }
         break;
     }
     case 'u': {
         if(arg !=NULL)
         {
-        //    arguments->uri = strdup(arg);
-        }
-        break;
-    }
-    case 't': {
-        if(arg !=NULL)
-        {
-    //        arguments->topic = strdup(arg);
-        }
-        break;
-    }
-    case 'c': {
-        if(arg !=NULL)
-        {
-     //       arguments->command_topic = strdup(arg);
+            opts->uri = strdup(arg);
         }
         break;
     }
     case 'v': {
-    //    arguments->verbose = true;
+        opts->verbose = true;
         break;
     }
     case ARGP_KEY_END:
     {
-        printf("Hello %d\n",state->arg_num);
-
+        
         if(opts->error)
         {
             opts->command = CMD_INVALID;
@@ -219,8 +240,9 @@ phev_args_opts_t * phev_args_parse(int argc, char *argv[])
     arguments->verbose = false;
     arguments->command = CMD_UNSET;
     arguments->error = false;
+    arguments->error_message = "";
 
-    argp_parse(&phev_args_argp, argc, argv, ARGP_NO_EXIT, 0, arguments);
+    argp_parse(&phev_args_argp, argc, argv, 0, 0, arguments);
     
     return arguments;
 }

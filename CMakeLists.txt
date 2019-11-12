@@ -19,7 +19,11 @@ if(MQTT_PAHO)
 endif()
 
 if(TARGET_GROUP STREQUAL production)
-    add_executable(phevctl main.c)
+
+    
+    add_executable(phevctl main.c
+        src/phevargs.c
+    )
     target_include_directories(phevctl PUBLIC include)
     target_link_libraries(phevctl "${PHEV_LIB}" "${MSG_CORE_LIB}" "${CJSON_LIB}" "${PAHO_LIB}" pthread)
 elseif(TARGET_GROUP STREQUAL test)

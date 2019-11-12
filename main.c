@@ -35,6 +35,7 @@ static void batteryLevelCallback(phevCtx_t * ctx, void * level)
 }
 static int main_eventHandler(phevEvent_t * event)
 {
+
     phevCtx_t * ctx = event->ctx;
 
     phev_args_opts_t * opts = (phev_args_opts_t *) phev_getUserCtx(ctx);
@@ -113,7 +114,7 @@ static int main_eventHandler(phevEvent_t * event)
         }
         case PHEV_STARTED:
         {
-            printf("Started\n");
+            printf("Connected to car successfully\n");
             return 0;
         }
         case PHEV_VIN:
@@ -169,53 +170,30 @@ void print_intro()
 int main(int argc, char *argv[])
 {
     
-    phevCtx_t * ctx; 
-    
-    printf("argc %d\n",argc);
-    for(int i =0;i< argc;i++)
-    {
-        printf("%s\n",argv[i]);
-    }
-    exit(0);
+    phevCtx_t * ctx = NULL; 
 
     phev_args_opts_t * opts = phev_args_parse(argc,argv);
 
-#ifdef MQTT_PAHO
-    printf("MQTT config\n");
-    printf("URI %s\nIncoming Topic %s\nOutgoing Topic %s\n",opts->uri,opts->command_topic,opts->topic);
-    
-    mqttPahoSettings_t mqtt_settings = {
-        .uri = opts->uri,
-        .clientId = "client",
-        .username = "user",
-        .password = "password",
-//        .incomingTopic = arguments.command_topic,
-//        .outgoingTopic = arguments.topic,
-    };
-    
-    messagingClient_t * client = msg_mqtt_paho_createMqttPahoClient(mqtt_settings);
-
+    if(opts == NULL)
+    {
+        printf("ERROR Options could not be parsed");
+        exit(1);
+    }
+    if(opts->error) 
+    {
+        printf("ERROR %s\n",opts->error_message);
+        exit(1);
+    }
     phevSettings_t settings = {
         .host = opts->host,
         .mac = opts->mac,
         .port = opts->port,
-        .registerDevice = opts->init,
-        .handler = main_eventHandler,
-        .in = client,
-    };
-#else 
-    phevSettings_t settings = {
-        .host = opts->host,
-        .mac = opts->mac,
-        .port = opts->port,
-        .registerDevice = opts->init,
+        .registerDevice = (opts->command == CMD_REGISTER?true:false),
         .handler = main_eventHandler,
         .ctx = (void *) opts,
     };
-#endif
 
     print_intro();
-
 
     if(opts->command == CMD_REGISTER) 
     {
@@ -232,8 +210,18 @@ int main(int argc, char *argv[])
 
     pthread_t main;
 
+    if(opts->command == CMD_UNSET)
+    {
+        printf("No command exiting.\n");
+        exit(0);
+    }
+    if(opts->command == CMD_INVALID)
+    {
+        printf("Error %s.\n",opts->error_message);
+        exit(0);
+    }
     int ret = pthread_create( &main, NULL, main_thread, (void*) ctx);
-    
+    //main_thread((void *) ctx);
     char ch;
     do {
         ch = getchar();

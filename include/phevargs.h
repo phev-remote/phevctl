@@ -25,7 +25,7 @@ typedef enum phev_args_commands_t { CMD_UNSET, CMD_INVALID, CMD_STATUS, CMD_REGI
 typedef struct phev_args_opts_t {
     bool init;
     char * host;
-    const uint8_t * mac;
+    uint8_t * mac;
     int port;
     char * uri;
     char * topic;
@@ -39,7 +39,7 @@ typedef struct phev_args_opts_t {
 
 } phev_args_opts_t;
 
-static const uint8_t PHEV_ARGS_DEFAULT_MAC[] = {0,0,0,0,0,0};
+static uint8_t PHEV_ARGS_DEFAULT_MAC[] = {0,0,0,0,0,0};
 
 static const char * phev_args_argp_program_version = "Version\t" VERSION;
 static const char * phev_args_argp_program_bug_address = "jamie@wattu.com";
@@ -47,12 +47,8 @@ static char phev_args_doc[] = "\n\nProgram to control the car via the remote WiF
 static char phev_args_args_doc[] = "register\nbattery\naircon [on|off]\nheadlights [on|off]\nmonitor\nget <register>";
 static struct argp_option phev_args_options[] = { 
     { "mac", 'm', "<MAC ADDRESS>",0, "MAC address."},
-//    { "init", 'i', 0,0, "Initialise and register with the car - car must be in registration mode."},
     { "host", 'h', "<HOST NAME>",OPTION_HIDDEN, "IP address of car - defaults to 192.168.8.46."},
     { "port", 'p', "<PORT NUMBER>",OPTION_HIDDEN, "Port to use - defaults to 8080"},
-    { "uri", 'u',"<URI>",OPTION_HIDDEN,"URI for MQTT server"},
-    { "topic",'t',"<TOPIC NAME>",OPTION_HIDDEN,"MQTT output topic"},
-    { "cmdtopic",'c',"<COMMAND TOPIC NAME>",OPTION_HIDDEN,"MQTT command topic"},
     { "verbose",'v',0,0,"Verbose output"},
     { 0 } 
 };

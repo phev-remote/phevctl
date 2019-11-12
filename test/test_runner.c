@@ -31,5 +31,17 @@ int main()
     RUN_TEST(test_phev_args_aircon_off);
     RUN_TEST(test_phev_args_aircon_no_operand);
 
+    RUN_TEST(test_phev_args_verbose_flag_on);
+    RUN_TEST(test_phev_args_verbose_off_by_default);
+
+    RUN_TEST(test_phev_args_host_default);
+    RUN_TEST(test_phev_args_host_as_arg);
+
+    RUN_TEST(test_phev_args_port_default);
+    RUN_TEST(test_phev_args_port_as_arg);
+    RUN_TEST(test_phev_args_port_as_arg_invalid);
+
+    RUN_TEST(test_phev_args_get);
+    
     return UNITY_END();
 }
