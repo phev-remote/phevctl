@@ -32,7 +32,7 @@ The quickest way to get started is using the existing docker image ...
 ```
 docker run papawattu/phevctl --help
 ```
-Or if you'd prefer to build you own image.
+Or if you'd prefer to build you own image. Or if you run it on OrangePi zero
 
 ### Docker build
 
@@ -82,7 +82,7 @@ docker build -t <replace with your docker user>/phevctl .
 ```
 You should then have the image built and you can run as follows :-
 ```
-docker run papawattu/phevctl --help
+docker run <replace with your docker user>/phevctl --help
 ```
 You should see the following help.
 ```
