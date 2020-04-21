@@ -24,8 +24,11 @@ if(TARGET_GROUP STREQUAL production)
     add_executable(phevctl main.c
         src/phevargs.c
     )
+    add_executable(decode decode.c)
     target_include_directories(phevctl PUBLIC include)
+    target_include_directories(decode PUBLIC include)
     target_link_libraries(phevctl "${PHEV_LIB}" "${MSG_CORE_LIB}" "${CJSON_LIB}" "${PAHO_LIB}" pthread)
+    target_link_libraries(decode "${PHEV_LIB}" "${MSG_CORE_LIB}" "${CJSON_LIB}" )
 elseif(TARGET_GROUP STREQUAL test)
     add_subdirectory(test)
 ENDIF()
