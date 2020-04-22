@@ -115,7 +115,6 @@ static int main_eventHandler(phevEvent_t *event)
     {
         printf("Registration Complete\n");
         exit(0);
-        return 0;
     }
     case PHEV_CONNECTED:
     {

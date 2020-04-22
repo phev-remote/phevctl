@@ -1,4 +1,4 @@
-FROM ubuntu:disco
+FROM ubuntu
 RUN apt-get -y update && apt-get upgrade -y && apt-get -y install build-essential cmake git
 WORKDIR /src
 RUN git clone https://github.com/papawattu/msg-core && git clone https://github.com/phev-remote/phevcore.git && git clone https://github.com/DaveGamble/cJSON.git
