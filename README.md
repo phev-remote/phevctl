@@ -3,6 +3,15 @@
 This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
 It uses the phev library found [here](https://github.com/phev-remote/phevcore).
 
+**Version 0.1** 
+
+**Updates**
+ECU 0.3.0.0 version now supported (Long password version MY18)
+Registration is now more robust
+Supports setting the aircon mode, cool, heat or windscreen.  You can also set thw time to 10,20 and 30 minutes**
+
+phevctl acmode cool 10
+
 ## License
 
 MIT License
