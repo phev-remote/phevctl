@@ -165,6 +165,12 @@ static int main_eventHandler(phevEvent_t *event)
         }
         return 0;
     }
+    case PHEV_REGISTER_UPDATE_ACK:
+        if(opts->verbose)
+        {
+            printf("Register %d Acknowledged\n",event->reg);
+        }
+        return 0;
     }
 
     return 0;
