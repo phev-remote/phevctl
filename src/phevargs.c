@@ -15,6 +15,14 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_AIRCON_MODE:
+        {
+            if(arg_num == 3)
+            {
+                return 0;
+            }
+            break;
+        }
         case CMD_REGISTER:
         {
             if(arg_num == 1)
@@ -40,6 +48,8 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             break;
         }
     }
+    opts->error_message = "Incorrect number of operands";
+    opts->error = true;
     return 1;
 }
 int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
@@ -74,11 +84,61 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             opts->error_message = "Too many operands";
             break;
         }
+        case CMD_AIRCON_MODE:
+        {
+            if(arg_num == 1)
+            {
+                if(strcmp(arg,HEAT) == 0)
+                {
+                    opts->operand_mode = 2;
+                    break;
+                }
+                if(strcmp(arg,COOL) == 0)
+                {
+                    opts->operand_mode = 1;
+                    break;
+                }
+                if(strcmp(arg,WINDSCREEN) == 0)
+                {
+                    opts->operand_mode = 3;
+                    break;
+                }
+                opts->error = true;
+                opts->error_message = "Unrecognised operand";
+                break;
+            } 
+            
+            if(arg_num == 2)
+            {
+                if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]))
+                {
+                    opts->operand_time = atoi(arg);
+                
+                    if(opts->operand_time != 10 &&
+                        opts->operand_time != 20 &&
+                        opts->operand_time != 30
+                    )
+                    {
+                        opts->error = true;
+                        opts->error_message = "Unrecognised operand";
+                        break;  
+                    }
+                } 
+                else 
+                {
+                    opts->error = true;
+                    opts->error_message = "Unrecognised operand";
+                }
+            }
+            break;   
+        }
         case CMD_GET_REG_VAL: {
             if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]) && arg_num == 1)
             {
                 opts->reg_operand = atoi(arg);
-            } else {
+            } 
+            else 
+            {
                 opts->error = true;
                 opts->error_message = "Not a number";
             }
@@ -120,6 +180,10 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     if(strcmp(arg,MONITOR) == 0 && arg_num == 0)
     {
         opts->command = CMD_DISPLAY_REG;
+    }
+    if(strcmp(arg,AIRCON_MODE) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_AIRCON_MODE;
     }
     return 0;
 }
@@ -193,11 +257,13 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
         if(opts->error)
         {
             opts->command = CMD_INVALID;
+            printf("\nERROR : %s\n",opts->error_message);
             argp_usage(state);
         }
         if(phev_args_validate(state->arg_num,opts))
         {
             opts->command = CMD_INVALID;
+            printf("\nERROR : %s\n",opts->error_message);
             argp_usage(state);
         } 
         break;

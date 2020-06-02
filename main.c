@@ -147,6 +147,12 @@ static int main_eventHandler(phevEvent_t *event)
                 phev_airCon(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
+            case CMD_AIRCON_MODE:
+            {
+                printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
+                phev_airConMode(event->ctx,opts->operand_mode,opts->operand_time,operationCallback);
+                break;
+            }
             }
         }
         return 0;
