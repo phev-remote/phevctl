@@ -24,7 +24,7 @@
 #define WINDSCREEN "windscreen"
 #define WAIT_FOR_REG_MAX 40
 
-typedef enum phev_args_commands_t { CMD_UNSET, CMD_INVALID, CMD_STATUS, CMD_REGISTER, CMD_HEADLIGHTS, CMD_BATTERY, CMD_AIRCON, CMD_AIRCON_MODE, CMD_GET_REG_VAL, CMD_DISPLAY_REG } phev_args_commands_t;
+typedef enum phev_args_commands_t { CMD_UNSET, CMD_MONITOR, CMD_INVALID, CMD_STATUS, CMD_REGISTER, CMD_HEADLIGHTS, CMD_BATTERY, CMD_AIRCON, CMD_AIRCON_MODE, CMD_GET_REG_VAL, CMD_DISPLAY_REG } phev_args_commands_t;
 
 typedef struct phev_args_opts_t {
     bool init;

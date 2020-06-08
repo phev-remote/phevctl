@@ -28,6 +28,10 @@ static void operationCallback(phevCtx_t *ctx, void *value)
     phev_exit(ctx);
     exit(0);
 }
+static void operationCallbackNoExit(phevCtx_t *ctx, void *value)
+{
+    printf("Operation successful\n");
+}
 static void batteryLevelCallback(phevCtx_t *ctx, void *level)
 {
     printf("Battery %d\n", *((int *)level));
@@ -52,6 +56,12 @@ static int main_eventHandler(phevEvent_t *event)
     {
     case PHEV_REGISTER_UPDATE:
     {
+        printf("Register %02X\n",event->reg);
+        for (int i = 0; i < event->length; i++)
+        {
+            printf("%02X ", event->data[i]);
+        }
+        printf("\n");
         if (opts->verbose)
         {
             if (event->reg == KO_WF_DATE_INFO_SYNC_EVR)
@@ -249,7 +259,30 @@ int main(int argc, char *argv[])
     {
         ch = getchar();
 
+        switch(ch)
+        {
+        case 'r': 
+        {
+            printf("Disconnecting\n");
+            phev_disconnect(ctx);
+            break;
+        }
+        case 'l':
+        {
+            printf("Lights on\n");
+            phev_headLights(ctx,true,operationCallbackNoExit);
+            break;
+        }
+        case 'a':
+        {
+            printf("Aircon on\n");
+            phev_airCon(ctx, true, operationCallbackNoExit);
+        }
+        }
+
     } while (ch != 'x' && phev_running(ctx));
+
+    phev_disconnect(ctx);
 
     printf("Exiting\n");
     exit(0);

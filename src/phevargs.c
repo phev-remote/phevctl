@@ -47,6 +47,14 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_MONITOR:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
     }
     opts->error_message = "Incorrect number of operands";
     opts->error = true;
@@ -144,6 +152,7 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_MONITOR:
         case CMD_BATTERY: {
             break;
         }
@@ -179,7 +188,7 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     }
     if(strcmp(arg,MONITOR) == 0 && arg_num == 0)
     {
-        opts->command = CMD_DISPLAY_REG;
+        opts->command = CMD_MONITOR;
     }
     if(strcmp(arg,AIRCON_MODE) == 0 && arg_num == 0)
     {
