@@ -1,12 +1,12 @@
 #include <stddef.h>
 #include "phevargs.h"
 
-
 int phev_args_validate(int arg_num,phev_args_opts_t * opts)
 {
     switch (opts->command)
     {
         case CMD_HEADLIGHTS:
+        case CMD_PARKING_LIGHTS:
         case CMD_AIRCON: 
         {
             if(arg_num == 2)
@@ -60,6 +60,7 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
     opts->error = true;
     return 1;
 }
+
 int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
 {
     switch (opts->command)
@@ -70,6 +71,7 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             break;
         }
         case CMD_HEADLIGHTS:
+        case CMD_PARKING_LIGHTS:
         case CMD_AIRCON: {
             if(arg_num == 1)
             {
@@ -157,13 +159,9 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             break;
         }
     }
-    if(!opts->error)
-    {
-        return 0;
-    } else {
-        return 1;
-    }
+    return opts->error ? 1 : 0;
 }
+
 int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
 {
     if(strcmp(arg,REGISTER) == 0 && arg_num ==0)
@@ -173,6 +171,10 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     if(strcmp(arg,HEADLIGHTS) == 0 && arg_num == 0)
     {
         opts->command = CMD_HEADLIGHTS;
+    }
+    if(strcmp(arg,PARKING_LIGHTS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_PARKING_LIGHTS;
     }
     if(strcmp(arg,BATTERY) == 0 && arg_num == 0)
     {
@@ -196,6 +198,7 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     }
     return 0;
 }
+
 static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state) {
     phev_args_opts_t * opts = state->input;
 
@@ -262,7 +265,6 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
     }
     case ARGP_KEY_END:
     {
-        
         if(opts->error)
         {
             opts->command = CMD_INVALID;

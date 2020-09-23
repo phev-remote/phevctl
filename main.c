@@ -32,22 +32,9 @@ static void operationCallbackNoExit(phevCtx_t *ctx, void *value)
 {
     printf("Operation successful\n");
 }
-static void batteryLevelCallback(phevCtx_t *ctx, void *level)
-{
-    printf("Battery %d\n", *((int *)level));
-    phev_exit(ctx);
-    exit(0);
-}
-static void turnonlights(phevCtx_t *ctx)
-{
-    printf("\n\nTURN ON LIGHTS\n\n");
-    ctx->serviceCtx->pipe->currentXOR = 0xd0;
-    phev_headLights(ctx,true,NULL);
-}
-  static bool d = true;
+
 static int main_eventHandler(phevEvent_t *event)
 {
-  
     phevCtx_t *ctx = event->ctx;
 
     phev_args_opts_t *opts = (phev_args_opts_t *)phev_getUserCtx(ctx);
@@ -147,20 +134,26 @@ static int main_eventHandler(phevEvent_t *event)
             {
             case CMD_HEADLIGHTS:
             {
-                printf("Turning %s headlights\n",(opts->operand_on ? "ON" : "OFF"));
-                phev_headLights(event->ctx,opts->operand_on,operationCallback);
+                printf("Turning %s headlights\n", opts->operand_on ? "ON" : "OFF");
+                phev_headLights(event->ctx, opts->operand_on, operationCallback);
+                break;
+            }
+            case CMD_PARKING_LIGHTS:
+            {
+                printf("Turning %s parking lights\n", opts->operand_on ? "ON" : "OFF");
+                phev_parkingLights(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_AIRCON:
             {
-                printf("Turning air conditioning %s\n", (opts->operand_on ? "ON" : "OFF"));
+                printf("Turning air conditioning %s\n", opts->operand_on ? "ON" : "OFF");
                 phev_airCon(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_AIRCON_MODE:
             {
                 printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
-                phev_airConMode(event->ctx,opts->operand_mode,opts->operand_time,operationCallback);
+                phev_airConMode(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
                 break;
             }
             }
@@ -196,9 +189,9 @@ void print_intro()
     printf("Designed and coded by Jamie Nuttall 2020\nMIT License\n\n");
     printf("Type 'x' then enter to quit.\n");
 }
+
 int main(int argc, char *argv[])
 {
-
     phevCtx_t *ctx = NULL;
 
     phev_args_opts_t *opts = phev_args_parse(argc, argv);
@@ -254,7 +247,6 @@ int main(int argc, char *argv[])
     int ret = pthread_create(&main, NULL, main_thread, (void *)ctx);
     //main_thread((void *) ctx);
     char ch;
-    static bool d = true;
     do
     {
         ch = getchar();
