@@ -153,13 +153,16 @@ static int main_eventHandler(phevEvent_t *event)
             case CMD_AIRCON_MODE:
             {
                 printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
-                phev_airConMode(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
-                break;
-            }
-            case CMD_AIRCON_MY19:
-            {
-                printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
-                phev_airConMY19(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                if (opts->verbose)
+                {
+                    printf("Car Model: %d\n", opts->carModel);
+                }
+                if ( opts->carModel == 2019){
+                    phev_airConMY19(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                } else {
+                    phev_airConMode(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                }
+
                 break;
             }
             }

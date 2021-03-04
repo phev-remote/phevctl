@@ -23,14 +23,6 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
-        case CMD_AIRCON_MY19:
-        {
-            if(arg_num == 3)
-            {
-                return 0;
-            }
-            break;
-        }
         case CMD_REGISTER:
         {
             if(arg_num == 1)
@@ -102,7 +94,6 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             opts->error_message = "Too many operands";
             break;
         }
-        case CMD_AIRCON_MY19:
         case CMD_AIRCON_MODE:
         {
             if(arg_num == 1)
@@ -193,10 +184,6 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     {
         opts->command = CMD_AIRCON;
     }
-    if(strcmp(arg,AIRCON_MY19) == 0 && arg_num == 0)
-    {
-        opts->command = CMD_AIRCON_MY19;
-    }
     if(strcmp(arg,GET) == 0 && arg_num == 0)
     {
         opts->command = CMD_GET_REG_VAL;
@@ -274,6 +261,10 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
     }
     case 'v': {
         opts->verbose = true;
+        break;
+    }
+    case 'c': {
+        opts->carModel = atoi(arg);
         break;
     }
     case ARGP_KEY_END:
