@@ -156,6 +156,12 @@ static int main_eventHandler(phevEvent_t *event)
                 phev_airConMode(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
                 break;
             }
+            case CMD_AIRCON_MY19:
+            {
+                printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
+                phev_airConMY19(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                break;
+            }
             }
         }
         return 0;
@@ -253,7 +259,7 @@ int main(int argc, char *argv[])
 
         switch(ch)
         {
-        case 'r': 
+        case 'r':
         {
             printf("Disconnecting\n");
             phev_disconnect(ctx);
