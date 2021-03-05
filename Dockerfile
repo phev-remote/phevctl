@@ -1,4 +1,7 @@
-FROM ubuntu
+FROM debian:stable
+MAINTAINER Vasyl Zakharchenko <vaszakharchenko@gmail.com>
+LABEL name="phevctl"
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y update && apt-get upgrade -y && apt-get -y install build-essential cmake git
 WORKDIR /src
 RUN git clone https://github.com/papawattu/msg-core && git clone https://github.com/vzakharchenko/phevcore.git && git clone https://github.com/DaveGamble/cJSON.git
