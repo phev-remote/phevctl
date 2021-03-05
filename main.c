@@ -72,6 +72,45 @@ static int main_eventHandler(phevEvent_t *event)
             }
             break;
         }
+        case CMD_CHARGING_STATUS:
+        {
+            if (event->reg == KO_WF_OBCHG_OK_ON_INFO_REP_EVR)
+            {
+                int chargeStatus = phev_chargingStatus(ctx);
+                if (chargeStatus < 0)
+                {
+                    return 0;
+                }
+                printf("Charge status %d\n", chargeStatus);
+                exit(0);
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS:
+        {
+            if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
+            {
+                phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
+
+                printf("{\"operating\":%d,\"mode\":%d}",  ph->operating, ph->mode);
+                exit(0);
+            }
+            break;
+        }
+        case CMD_REMAINING_CHARGING_STATUS:
+        {
+            if (event->reg == KO_WF_OBCHG_OK_ON_INFO_REP_EVR)
+            {
+                int remainingChargeStatus = phev_remainingChargeTime(ctx);
+                if (remainingChargeStatus < 0)
+                {
+                    return 0;
+                }
+                printf("Remaining Charge status %d\n", remainingChargeStatus);
+                exit(0);
+            }
+            break;
+        }
         case CMD_DISPLAY_REG:
         {
             printf("Register : %d Data :", event->reg);

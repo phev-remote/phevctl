@@ -47,6 +47,30 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_CHARGING_STATUS:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_REMAINING_CHARGING_STATUS:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
         case CMD_MONITOR:
         {
             if(arg_num == 1)
@@ -155,6 +179,9 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             break;
         }
         case CMD_MONITOR:
+        case CMD_CHARGING_STATUS:
+        case CMD_HVAC_STATUS:
+        case CMD_REMAINING_CHARGING_STATUS:
         case CMD_BATTERY: {
             break;
         }
@@ -179,6 +206,18 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     if(strcmp(arg,BATTERY) == 0 && arg_num == 0)
     {
         opts->command = CMD_BATTERY;
+    }
+    if(strcmp(arg,CHARGING_STATUS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_CHARGING_STATUS;
+    }
+    if(strcmp(arg,REMAINING_CHARGING_STATUS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_REMAINING_CHARGING_STATUS;
+    }
+    if(strcmp(arg,HVAC_STATUS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_HVAC_STATUS;
     }
     if(strcmp(arg,AIRCON) == 0 && arg_num == 0)
     {
