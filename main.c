@@ -72,6 +72,23 @@ static int main_eventHandler(phevEvent_t *event)
             }
             break;
         }
+        case CMD_ISLOCKED:
+        {
+            if (event->reg == KO_WF_DOOR_STATUS_INFO_REP_EVR)
+            {
+                int islocked = phev_isLocked(ctx);
+                if (islocked < 0)
+                {
+                printf("Doors in UNKNOWN STATE\n");
+                } else if (islocked == 1){
+                printf("Doors are Locked\n");
+                } else{
+                printf("Doors are UnLocked\n");
+                }
+                exit(0);
+            }
+            break;
+        }
         case CMD_CHARGING_STATUS:
         {
             if (event->reg == KO_WF_OBCHG_OK_ON_INFO_REP_EVR)
@@ -187,6 +204,12 @@ static int main_eventHandler(phevEvent_t *event)
             {
                 printf("Turning air conditioning %s\n", opts->operand_on ? "ON" : "OFF");
                 phev_airCon(event->ctx, opts->operand_on, operationCallback);
+                break;
+            }
+            case CMD_UPDATE:
+            {
+                printf("Update All\n");
+                phev_updateAll(event->ctx, operationCallback);
                 break;
             }
             case CMD_AIRCON_MODE:

@@ -2,6 +2,11 @@
 
 This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
 It uses the phev library found [here](https://github.com/phev-remote/phevcore).
+** Differences with https://github.com/phev-remote/phevctl **
+- ``` docker run vassio/phevctl lockstatus ``` Doors is locked or not
+- ``` docker run vassio/phevctl chargestatus ``` 1 if charging, otherwise 0
+ - ```docker run vassio/phevctl remaningchargestatus ``` remaining charge time in minutes
+ - ``` docker run vassio/phevctl hvac ```
 
 **Version 0.1**
 
@@ -95,13 +100,13 @@ docker run <replace with your docker user>/phevctl --help
 ```
 You should see the following help.
 ```
-Mitsubishi Outlander PHEV Remote CLI - Designed and coded by Jamie Nuttall 2019
-
 Usage: phevctl [OPTION...] register
   or:  phevctl [OPTION...] battery
   or:  phevctl [OPTION...] chargestatus
+  or:  phevctl [OPTION...] lockstatus
   or:  phevctl [OPTION...] hvac
   or:  phevctl [OPTION...] remaningchargestatus
+  or:  phevctl [OPTION...] update
   or:  phevctl [OPTION...] aircon [on|off]
   or:  phevctl [OPTION...] acmode [heat|cool|windscreen] [10|20|30]
   or:  phevctl [OPTION...] headlights [on|off]
@@ -180,5 +185,7 @@ docker run vassio/phevctl acmode cool 10
 docker run vassio/phevctl aircon on
 
 docker run vassio/phevctl headlights on
+
+docker run vassio/phevctl lockstatus
 ```
 Have fun!!!

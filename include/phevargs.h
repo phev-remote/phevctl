@@ -13,8 +13,10 @@
 #define HEADLIGHTS "headlights"
 #define PARKING_LIGHTS "parkinglights"
 #define BATTERY "battery"
+#define ISLOCKED "lockstatus"
 #define CHARGING_STATUS "chargestatus"
 #define HVAC_STATUS "hvac"
+#define UPDATE "update"
 #define REMAINING_CHARGING_STATUS "remaningchargestatus"
 #define AIRCON "aircon"
 #define AIRCON_MODE "acmode"
@@ -38,10 +40,14 @@ typedef enum phev_args_commands_t {
     CMD_HEADLIGHTS,
     CMD_PARKING_LIGHTS,
     CMD_BATTERY,
+    CMD_ISLOCKED,
     CMD_CHARGING_STATUS,
     CMD_HVAC_STATUS,
     CMD_REMAINING_CHARGING_STATUS,
     CMD_AIRCON,
+    CMD_PANIC,
+    CMD_HORN,
+    CMD_UPDATE,
     CMD_AIRCON_MODE,
     CMD_GET_REG_VAL,
     CMD_DISPLAY_REG,
@@ -72,7 +78,7 @@ static uint8_t PHEV_ARGS_DEFAULT_MAC[] = {0,0,0,0,0,0};
 static const char * phev_args_argp_program_version = "Version\t" VERSION;
 static const char * phev_args_argp_program_bug_address = "jamie@wattu.com";
 static char phev_args_doc[] = "\n\nProgram to control the car via the remote WiFi interface.  Requires this device to be connected to the REMOTE**** access point with a valid IP address, which is on the 192.168.8.x subnet.\n\nTHIS PROGRAM COMES WITH NO WARRANTY ANY DAMAGE TO THE CAR OR ANY OTHER EQUIPMENT IS AT THE USERS OWN RISK.";
-static char phev_args_args_doc[] = "register\nbattery\nchargestatus\nhvac\nremaningchargestatus\naircon [on|off]\nacmode [heat|cool|windscreen] [10|20|30]\nheadlights [on|off]\nparkinglights [on|off]\nmonitor\nget <register>";
+static char phev_args_args_doc[] = "register\nbattery\nchargestatus\nlockstatus\nhvac\nremaningchargestatus\nupdate\naircon [on|off]\nacmode [heat|cool|windscreen] [10|20|30]\nheadlights [on|off]\nparkinglights [on|off]\nmonitor\nget <register>";
 static struct argp_option phev_args_options[] = {
     { "mac", 'm', "<MAC ADDRESS>",0, "MAC address."},
     { "car-model", 'c', "<YEAR>",0, "Model Year."},
