@@ -98,7 +98,12 @@ static int main_eventHandler(phevEvent_t *event)
                 {
                     return 0;
                 }
-                printf("Charge status %d\n", chargeStatus);
+                 if (chargeStatus == 1)
+                 {
+                   printf("Charging...\n");
+                 } else {
+                   printf("Not charging\n");
+                 }
                 exit(0);
             }
             break;
@@ -108,8 +113,8 @@ static int main_eventHandler(phevEvent_t *event)
             if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
             {
                 phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
-
-                printf("{\"operating\":%d,\"mode\":%d}",  ph->operating, ph->mode);
+                printf("Operating:%d\n", ph->operating);
+                printf("mode:%d\n", ph->mode);
                 exit(0);
             }
             break;
@@ -123,7 +128,7 @@ static int main_eventHandler(phevEvent_t *event)
                 {
                     return 0;
                 }
-                printf("Remaining Charge status %d\n", remainingChargeStatus);
+                printf("Remaining %d\n", remainingChargeStatus);
                 exit(0);
             }
             break;
