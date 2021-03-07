@@ -2,11 +2,6 @@
 
 This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
 It uses the phev library found [here](https://github.com/phev-remote/phevcore).
-** Differences with https://github.com/phev-remote/phevctl **
-- ``` docker run vassio/phevctl lockstatus ``` Doors is locked or not
-- ``` docker run vassio/phevctl chargestatus ``` 1 if charging, otherwise 0
- - ```docker run vassio/phevctl remaningchargestatus ``` remaining charge time in minutes
- - ``` docker run vassio/phevctl hvac ```
 
 **Version 0.1**
 
@@ -44,7 +39,7 @@ MIT License
 ## Building
 The quickest way to get started is using the existing docker image ...
 ```
-docker run vassio/phevctl --help
+docker run papawattu/phevctl --help
 ```
 Or if you'd prefer to build you own image. Or if you run it on OrangePi zero
 
@@ -109,6 +104,7 @@ Usage: phevctl [OPTION...] register
   or:  phevctl [OPTION...] update
   or:  phevctl [OPTION...] aircon [on|off]
   or:  phevctl [OPTION...] acmode [heat|cool|windscreen] [10|20|30]
+  or:  phevctl [OPTION...] --car-model=2019 acmode [heat|cool|windscreen] [10|20|30]
   or:  phevctl [OPTION...] headlights [on|off]
   or:  phevctl [OPTION...] parkinglights [on|off]
   or:  phevctl [OPTION...] monitor
@@ -164,28 +160,25 @@ Firstly put your car into registration mode instructions [here](https://www.mits
 
 Then issue the following command.
 ```
-docker run vassio/phevctl register
+docker run papawattu/phevctl register
 ```
 You should see the message that the car is now registered.
 ## Using commands
 You can then follow the help instructions to get the battery level and switch on and off the air conditioning and head lights.
 ```
-docker run vassio/phevctl battery
 
-docker run vassio/phevctl chargestatus
+docker run papawattu/phevctl battery
 
-docker run vassio/phevctl hvac
+docker run papawattu/phevctl aircon on
 
-docker run vassio/phevctl remaningchargestatus
+docker run papawattu/phevctl headlights on
 
-docker run vassio/phevctl acmode heat 10
+docker run papawattu/phevctl chargestatus
+docker run papawattu/phevctl lockstatus
+docker run papawattu/phevctl hvac
+docker run papawattu/phevctl remaningchargestatus
+docker run papawattu/phevctl update
+docker run papawattu/phevctl --car-model=2019 acmode heat 20
 
-docker run vassio/phevctl acmode cool 10
-
-docker run vassio/phevctl aircon on
-
-docker run vassio/phevctl headlights on
-
-docker run vassio/phevctl lockstatus
 ```
 Have fun!!!
