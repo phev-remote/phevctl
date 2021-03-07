@@ -3,7 +3,7 @@
 This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
 It uses the phev library found [here](https://github.com/phev-remote/phevcore).
 
-**Version 0.1** 
+**Version 0.1**
 
 **Updates**
 ECU 0.3.0.0 version now supported (Long password version MY18)
@@ -80,7 +80,7 @@ Server: Docker Engine - Community
   Version:          0.18.0
   GitCommit:        fec3683
 ```
-Check out this repository by cloning 
+Check out this repository by cloning
 ```
 git clone https://github.com/phev-remote/phevctl
 ```
@@ -95,12 +95,20 @@ docker run <replace with your docker user>/phevctl --help
 ```
 You should see the following help.
 ```
-Mitsubishi Outlander PHEV Remote CLI - Designed and coded by Jamie Nuttall 2019
-
 Usage: phevctl [OPTION...] register
   or:  phevctl [OPTION...] battery
+  or:  phevctl [OPTION...] chargestatus
+  or:  phevctl [OPTION...] lockstatus
+  or:  phevctl [OPTION...] hvac
+  or:  phevctl [OPTION...] remaningchargestatus
+  or:  phevctl [OPTION...] update
   or:  phevctl [OPTION...] aircon [on|off]
+  or:  phevctl [OPTION...] acmode [heat|cool|windscreen] [10|20|30]
+  or:  phevctl [OPTION...] --car-model=2019 acmode [heat|cool|windscreen] [10|20|30]
   or:  phevctl [OPTION...] headlights [on|off]
+  or:  phevctl [OPTION...] parkinglights [on|off]
+  or:  phevctl [OPTION...] monitor
+  or:  phevctl [OPTION...] get <register>
 
 
 Program to control the car via the remote WiFi interface.  Requires this device
@@ -110,11 +118,11 @@ is on the 192.168.8.x subnet.
 THIS PROGRAM COMES WITH NO WARRANTY ANY DAMAGE TO THE CAR OR ANY OTHER
 EQUIPMENT IS AT THE USERS OWN RISK.
 
+  -c, --car-model=<YEAR>     Model Year.
   -m, --mac=<MAC ADDRESS>    MAC address.
   -v, --verbose              Verbose output
   -?, --help                 Give this help list
       --usage                Give a short usage message
-  -V, --version              Print program version
 
 Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
@@ -132,13 +140,13 @@ Locate your Wi-Fi details and you should have a line that says your IP address.
 
 ### Windows command prompt
 ```
-ipconfig 
+ipconfig
 ...
 IPv4 Address. . . . . . . . . . . : 192.168.8.47
 ```
 ### Linux
 ```
-ifconfig -a 
+ifconfig -a
 ...
 wlan0:
    inet 192.168.8.47
@@ -146,7 +154,7 @@ wlan0:
 
 ## Registering your device
 
-As in with the official app the device needs to be registered with the car.  
+As in with the official app the device needs to be registered with the car.
 
 Firstly put your car into registration mode instructions [here](https://www.mitsubishi-motors.com/en/products/outlander_phev/app/remote/jizen.html)
 
@@ -158,10 +166,19 @@ You should see the message that the car is now registered.
 ## Using commands
 You can then follow the help instructions to get the battery level and switch on and off the air conditioning and head lights.
 ```
+
 docker run papawattu/phevctl battery
 
 docker run papawattu/phevctl aircon on
 
 docker run papawattu/phevctl headlights on
+
+docker run papawattu/phevctl chargestatus
+docker run papawattu/phevctl lockstatus
+docker run papawattu/phevctl hvac
+docker run papawattu/phevctl remaningchargestatus
+docker run papawattu/phevctl update
+docker run papawattu/phevctl --car-model=2019 acmode heat 20
+
 ```
-Have fun!!! 
+Have fun!!!

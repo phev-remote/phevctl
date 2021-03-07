@@ -72,6 +72,67 @@ static int main_eventHandler(phevEvent_t *event)
             }
             break;
         }
+        case CMD_ISLOCKED:
+        {
+            if (event->reg == KO_WF_DOOR_STATUS_INFO_REP_EVR)
+            {
+                int islocked = phev_isLocked(ctx);
+                if (islocked < 0)
+                {
+                printf("Doors in UNKNOWN STATE\n");
+                } else if (islocked == 1){
+                printf("Doors are Locked\n");
+                } else{
+                printf("Doors are UnLocked\n");
+                }
+                exit(0);
+            }
+            break;
+        }
+        case CMD_CHARGING_STATUS:
+        {
+            if (event->reg == KO_WF_OBCHG_OK_ON_INFO_REP_EVR)
+            {
+                int chargeStatus = phev_chargingStatus(ctx);
+                if (chargeStatus < 0)
+                {
+                    return 0;
+                }
+                 if (chargeStatus == 1)
+                 {
+                   printf("Charging...\n");
+                 } else {
+                   printf("Not charging\n");
+                 }
+                exit(0);
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS:
+        {
+            if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
+            {
+                phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
+                printf("Operating:%d\n", ph->operating);
+                printf("mode:%d\n", ph->mode);
+                exit(0);
+            }
+            break;
+        }
+        case CMD_REMAINING_CHARGING_STATUS:
+        {
+            if (event->reg == KO_WF_OBCHG_OK_ON_INFO_REP_EVR)
+            {
+                int remainingChargeStatus = phev_remainingChargeTime(ctx);
+                if (remainingChargeStatus < 0)
+                {
+                    return 0;
+                }
+                printf("Remaining %d\n", remainingChargeStatus);
+                exit(0);
+            }
+            break;
+        }
         case CMD_DISPLAY_REG:
         {
             printf("Register : %d Data :", event->reg);
@@ -150,10 +211,25 @@ static int main_eventHandler(phevEvent_t *event)
                 phev_airCon(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
+            case CMD_UPDATE:
+            {
+                printf("Update All\n");
+                phev_updateAll(event->ctx, operationCallback);
+                break;
+            }
             case CMD_AIRCON_MODE:
             {
                 printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
-                phev_airConMode(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                if (opts->verbose)
+                {
+                    printf("Car Model: %d\n", opts->carModel);
+                }
+                if ( opts->carModel == 2019){
+                    phev_airConMY19(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                } else {
+                    phev_airConMode(event->ctx, opts->operand_mode, opts->operand_time, operationCallback);
+                }
+
                 break;
             }
             }
@@ -253,7 +329,7 @@ int main(int argc, char *argv[])
 
         switch(ch)
         {
-        case 'r': 
+        case 'r':
         {
             printf("Disconnecting\n");
             phev_disconnect(ctx);

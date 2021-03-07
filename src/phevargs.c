@@ -7,7 +7,7 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
     {
         case CMD_HEADLIGHTS:
         case CMD_PARKING_LIGHTS:
-        case CMD_AIRCON: 
+        case CMD_AIRCON:
         {
             if(arg_num == 2)
             {
@@ -39,7 +39,33 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_UPDATE:
         case CMD_BATTERY:
+        case CMD_ISLOCKED:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_CHARGING_STATUS:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_REMAINING_CHARGING_STATUS:
         {
             if(arg_num == 1)
             {
@@ -79,7 +105,7 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
                 {
                     opts->operand_on = true;
                     break;
-                } 
+                }
                 if(strcmp(arg,OFF) == 0)
                 {
                     opts->operand_on = false;
@@ -89,7 +115,7 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
                 opts->error_message = "Operand must be on or off";
                 break;
             }
-            
+
             opts->error = true;
             opts->error_message = "Too many operands";
             break;
@@ -116,14 +142,14 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
                 opts->error = true;
                 opts->error_message = "Unrecognised operand";
                 break;
-            } 
-            
+            }
+
             if(arg_num == 2)
             {
                 if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]))
                 {
                     opts->operand_time = atoi(arg);
-                
+
                     if(opts->operand_time != 10 &&
                         opts->operand_time != 20 &&
                         opts->operand_time != 30
@@ -131,23 +157,23 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
                     {
                         opts->error = true;
                         opts->error_message = "Unrecognised operand";
-                        break;  
+                        break;
                     }
-                } 
-                else 
+                }
+                else
                 {
                     opts->error = true;
                     opts->error_message = "Unrecognised operand";
                 }
             }
-            break;   
+            break;
         }
         case CMD_GET_REG_VAL: {
             if(strlen(arg) == 2 && isdigit(arg[0]) && isdigit(arg[1]) && arg_num == 1)
             {
                 opts->reg_operand = atoi(arg);
-            } 
-            else 
+            }
+            else
             {
                 opts->error = true;
                 opts->error_message = "Not a number";
@@ -155,6 +181,10 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
             break;
         }
         case CMD_MONITOR:
+        case CMD_CHARGING_STATUS:
+        case CMD_HVAC_STATUS:
+        case CMD_ISLOCKED:
+        case CMD_REMAINING_CHARGING_STATUS:
         case CMD_BATTERY: {
             break;
         }
@@ -180,9 +210,29 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     {
         opts->command = CMD_BATTERY;
     }
+    if(strcmp(arg,ISLOCKED) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_ISLOCKED;
+    }
+    if(strcmp(arg,CHARGING_STATUS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_CHARGING_STATUS;
+    }
+    if(strcmp(arg,REMAINING_CHARGING_STATUS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_REMAINING_CHARGING_STATUS;
+    }
+    if(strcmp(arg,HVAC_STATUS) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_HVAC_STATUS;
+    }
     if(strcmp(arg,AIRCON) == 0 && arg_num == 0)
     {
         opts->command = CMD_AIRCON;
+    }
+    if(strcmp(arg,UPDATE) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_UPDATE;
     }
     if(strcmp(arg,GET) == 0 && arg_num == 0)
     {
@@ -244,9 +294,9 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
         }
         opts->mac = PHEV_ARGS_DEFAULT_MAC;
         break;
-    } 
+    }
     case 'h': {
-        if(arg !=NULL) 
+        if(arg !=NULL)
         {
             opts->host = strdup(arg);
         }
@@ -263,6 +313,10 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
         opts->verbose = true;
         break;
     }
+    case 'c': {
+        opts->carModel = atoi(arg);
+        break;
+    }
     case ARGP_KEY_END:
     {
         if(opts->error)
@@ -276,7 +330,7 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
             opts->command = CMD_INVALID;
             printf("\nERROR : %s\n",opts->error_message);
             argp_usage(state);
-        } 
+        }
         break;
     }
     case ARGP_KEY_ARG: {
@@ -288,16 +342,16 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
             }
             break;
         }
-        
+
         if(phev_args_process_operands(strdup(arg), state->arg_num,opts))
         {
             opts->command = CMD_INVALID;
         }
         break;
     }
-        
+
     default: return ARGP_ERR_UNKNOWN;
-    }   
+    }
     return 0;
 }
 
@@ -320,6 +374,6 @@ phev_args_opts_t * phev_args_parse(int argc, char *argv[])
     arguments->error_message = "";
 
     argp_parse(&phev_args_argp, argc, argv, 0, 0, arguments);
-    
+
     return arguments;
 }

@@ -7,7 +7,7 @@ RUN cd /src/msg-core && mkdir build && cd build && cmake .. && make && make inst
 RUN cd /src/phevcore && mkdir build && cd build && cmake .. && make && make install
 COPY . /src/phevctl
 WORKDIR /src/phevctl
-RUN mkdir -p build && cd build && cmake .. && make 
+RUN mkdir -p build && cd build && cmake .. && make
 ENTRYPOINT ["/src/phevctl/build/phevctl"]
 CMD []
 
