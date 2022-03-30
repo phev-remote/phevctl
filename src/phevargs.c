@@ -81,6 +81,8 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        default:
+        return 0;
     }
     opts->error_message = "Incorrect number of operands";
     opts->error = true;
@@ -185,7 +187,8 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
         case CMD_HVAC_STATUS:
         case CMD_ISLOCKED:
         case CMD_REMAINING_CHARGING_STATUS:
-        case CMD_BATTERY: {
+        case CMD_BATTERY: 
+        default:{
             break;
         }
     }

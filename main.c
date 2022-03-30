@@ -58,6 +58,8 @@ static int main_eventHandler(phevEvent_t *event)
         }
         switch (opts->command)
         {
+        default:
+          break;
         case CMD_BATTERY:
         {
             if (event->reg == KO_WF_BATT_LEVEL_INFO_REP_EVR)
@@ -232,6 +234,8 @@ static int main_eventHandler(phevEvent_t *event)
 
                 break;
             }
+            default:
+            break;
             }
         }
         return 0;
@@ -250,6 +254,8 @@ static int main_eventHandler(phevEvent_t *event)
             printf("Register %d Acknowledged\n",event->reg);
         }
         return 0;
+    default:
+        break;
     }
 
     return 0;
@@ -258,6 +264,7 @@ static int main_eventHandler(phevEvent_t *event)
 void *main_thread(void *ctx)
 {
     phev_start((phevCtx_t *)ctx);
+    return NULL;
 }
 void print_intro()
 {
