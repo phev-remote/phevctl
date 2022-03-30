@@ -6,6 +6,9 @@ include(CTest)
 option(MQTT_PAHO "Include MQTT Paho support (requires msg core to be compiled with Paho support)")
 
 set (CMAKE_C_STANDARD 11)
+if (UNIX)
+  add_definitions (-D__unix__)
+endif()
 
 set(TARGET_GROUP production CACHE STRING "Group to build")
 

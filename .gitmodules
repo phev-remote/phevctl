@@ -6,3 +6,6 @@
 	url = https://github.com/papawattu/msg_core.git
 	
 	
+[submodule "externals/CMake-argp"]
+	path = externals/CMake-argp
+	url = git@github.com:alehaa/CMake-argp.git
