@@ -2,9 +2,14 @@
 
 ## Requirements
 
-Linux based OS - Tested on Debian and variants including Ubuntu, WSL & Raspberry Pi.
+Unix based OS
 
-### Debian based OS
+- Tested on Debian and variants including Ubuntu, WSL & Raspberry Pi.
+- Also tested on MacOS (Catalina).
+
+### Debian based and Mac OS
+
+Use the steps below, or have a look at [this repository](https://github.com/steady286/phevbuild).
 
 ```
 sudo apt-get install build-essential cmake git
