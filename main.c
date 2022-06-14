@@ -47,18 +47,15 @@ static int main_eventHandler(phevEvent_t *event)
         {
           printf("Register %02X\n",event->reg);
           for (int i = 0; i < event->length; i++)
-          {
+         
+         {
               printf("%02X ", event->data[i]);
           }
           printf("\n");
-        }
-
-        if (opts->verbose)
-        {
-            if (event->reg == KO_WF_DATE_INFO_SYNC_EVR)
-            {
-                printf("Date sync 20%d-%d-%d %d:%0d:%0d\n", event->data[0], event->data[1], event->data[2], event->data[3], event->data[4], event->data[5]);
-            }
+          if (event->reg == KO_WF_DATE_INFO_SYNC_EVR)
+          {
+              printf("Date sync 20%d-%d-%d %d:%0d:%0d\n", event->data[0], event->data[1], event->data[2], event->data[3], event->data[4], event->data[5]);
+          }
         }
         switch (opts->command)
         {
