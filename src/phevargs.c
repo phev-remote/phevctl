@@ -313,6 +313,10 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
         opts->verbose = true;
         break;
     }
+    case 'n': {
+        opts->numerical = true;
+        break;
+    }
     case 'c': {
         opts->carModel = atoi(arg);
         break;

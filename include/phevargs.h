@@ -62,6 +62,7 @@ typedef struct phev_args_opts_t {
     char * topic;
     char * command_topic;
     bool verbose;
+    bool numerical;
     int carModel;
     bool operand_on;
     uint8_t operand_mode;
@@ -85,6 +86,7 @@ static struct argp_option phev_args_options[] = {
     { "host", 'h', "<HOST NAME>",OPTION_HIDDEN, "IP address of car - defaults to 192.168.8.46."},
     { "port", 'p', "<PORT NUMBER>",OPTION_HIDDEN, "Port to use - defaults to 8080"},
     { "verbose",'v',0,0,"Verbose output"},
+    { "numerical",'n',0,0,"Numerical output"},
     { 0 }
 };
 phev_args_opts_t * phev_args_parse(int argc, char *argv[]);
