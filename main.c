@@ -162,7 +162,14 @@ static int main_eventHandler(phevEvent_t *event)
                 {
                     return 0;
                 }
-                printf("Remaining %d\n", remainingChargeStatus);
+                if (!opts->numerical)
+                {
+                    printf("Remaining %d\n", remainingChargeStatus);
+                }
+                else 
+                {
+                    printf("%d", remainingChargeStatus);
+                }
                 exit(0);
             }
             break;
