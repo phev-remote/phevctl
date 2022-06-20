@@ -166,7 +166,7 @@ static int main_eventHandler(phevEvent_t *event)
                 else 
                 {
                     printf("%d", ph->operating);
-                }
+                } 
                 exit(0);
             }
             break;
