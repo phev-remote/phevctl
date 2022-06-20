@@ -65,6 +65,22 @@ int phev_args_validate(int arg_num,phev_args_opts_t * opts)
             }
             break;
         }
+        case CMD_HVAC_STATUS_OPERATING:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS_MODE:
+        {
+            if(arg_num == 1)
+            {
+                return 0;
+            }
+            break;
+        }
         case CMD_REMAINING_CHARGING_STATUS:
         {
             if(arg_num == 1)
@@ -183,6 +199,8 @@ int phev_args_process_operands(char * arg, int arg_num, phev_args_opts_t * opts)
         case CMD_MONITOR:
         case CMD_CHARGING_STATUS:
         case CMD_HVAC_STATUS:
+        case CMD_HVAC_STATUS_OPERATING:
+        case CMD_HVAC_STATUS_MODE:
         case CMD_ISLOCKED:
         case CMD_REMAINING_CHARGING_STATUS:
         case CMD_BATTERY: {
@@ -225,6 +243,14 @@ int phev_args_process_command(char * arg, int arg_num, phev_args_opts_t * opts)
     if(strcmp(arg,HVAC_STATUS) == 0 && arg_num == 0)
     {
         opts->command = CMD_HVAC_STATUS;
+    }
+    if(strcmp(arg,HVAC_STATUS_OPERATING) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_HVAC_STATUS_OPERATING;
+    }
+    if(strcmp(arg,HVAC_STATUS_MODE) == 0 && arg_num == 0)
+    {
+        opts->command = CMD_HVAC_STATUS_MODE;
     }
     if(strcmp(arg,AIRCON) == 0 && arg_num == 0)
     {
@@ -364,7 +390,6 @@ static struct argp phev_args_argp = { phev_args_options, phev_args_parse_opt, ph
 phev_args_opts_t * phev_args_parse(int argc, char *argv[])
 {
     phev_args_opts_t * arguments = malloc(sizeof(phev_args_opts_t));
-
     arguments->host = strdup("192.168.8.46");
     arguments->uri = strdup("tcp://localhost:1883");
     arguments->mac = PHEV_ARGS_DEFAULT_MAC;

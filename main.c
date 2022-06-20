@@ -145,10 +145,46 @@ static int main_eventHandler(phevEvent_t *event)
         {
             if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
             {
-                printf("HVAC\n");
+                printf("HVAC Status\n");
                 phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
                 printf("Operating:%d\n", ph->operating);
                 printf("mode:%d\n", ph->mode);
+                exit(0);
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS_OPERATING:
+        {
+            if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
+            {
+                phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
+                if (!opts->numerical)
+                {
+                    printf("HVAC Status Operating\n");
+                    printf("Operating:%d\n", ph->operating);
+                }
+                else 
+                {
+                    printf("%d", ph->operating);
+                }
+                exit(0);
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS_MODE:
+        {
+            if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
+            {
+                phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
+                if (!opts->numerical)
+                {
+                    printf("HVAC Status Mode\n");
+                    printf("mode:%d\n", ph->mode);
+                }
+                else 
+                {
+                    printf("%d", ph->mode);
+                }
                 exit(0);
             }
             break;

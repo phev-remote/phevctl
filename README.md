@@ -100,6 +100,8 @@ Usage: phevctl [OPTION...] register
   or:  phevctl [OPTION...] chargestatus
   or:  phevctl [OPTION...] lockstatus
   or:  phevctl [OPTION...] hvac
+  or:  phevctl [OPTION...] hvacoperating 
+  or:  phevctl [OPTION...] hvacmode
   or:  phevctl [OPTION...] remaningchargestatus
   or:  phevctl [OPTION...] update
   or:  phevctl [OPTION...] aircon [on|off]
