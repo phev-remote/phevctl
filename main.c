@@ -233,7 +233,11 @@ static int main_eventHandler(phevEvent_t *event)
                 wait_for_regs++;
                 return 0;
             }
-            printf("Get register %d : ", opts->reg_operand);
+            if (!opts->numerical)
+            {
+                printf("Get register %d : ", opts->reg_operand);
+            }
+            
             for (int i = 0; i < reg->length; i++)
             {
                 printf("%02X ", reg->data[i]);
