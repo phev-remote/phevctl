@@ -100,6 +100,8 @@ Usage: phevctl [OPTION...] register
   or:  phevctl [OPTION...] chargestatus
   or:  phevctl [OPTION...] lockstatus
   or:  phevctl [OPTION...] hvac
+  or:  phevctl [OPTION...] hvacoperating 
+  or:  phevctl [OPTION...] hvacmode
   or:  phevctl [OPTION...] remaningchargestatus
   or:  phevctl [OPTION...] update
   or:  phevctl [OPTION...] aircon [on|off]
@@ -180,5 +182,25 @@ docker run papawattu/phevctl remaningchargestatus
 docker run papawattu/phevctl update
 docker run papawattu/phevctl --car-model=2019 acmode heat 20
 
+```
+These commends can be used either with Docker or from the command line (if you build from source). 
+Another example:
+
+```
+./phevctl hvac         // Check AC status
+HVAC Status
+Operating:0
+mode:3
+
+/phevctl aircon on
+Turning air conditioning ON
+
+./phevctl hvac
+HVAC Status
+Operating:1
+mode:3			// 1=cool, 2=heat, 3=windscreen(defrost)
+
+./phevctl acmode cool 10
+Switching air conditioning mode to 1 for 10 mins
 ```
 Have fun!!!
