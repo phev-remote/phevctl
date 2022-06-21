@@ -24,13 +24,29 @@ int wait_for_regs = 0;
 
 static void operationCallback(phevCtx_t *ctx, void *value)
 {
-    printf("Operation successful\n");
+    phev_args_opts_t *opts = (phev_args_opts_t *)phev_getUserCtx(ctx);
+    if (!opts->numerical)
+    {
+        printf("Operation successful\n");
+    }
+    else
+    {
+        printf("0");
+    }
     phev_exit(ctx);
     exit(0);
 }
 static void operationCallbackNoExit(phevCtx_t *ctx, void *value)
-{
-    printf("Operation successful\n");
+{ 
+    phev_args_opts_t *opts = (phev_args_opts_t *)phev_getUserCtx(ctx);
+    if (!opts->numerical)
+    {
+        printf("Operation successful\n");
+    }
+    else
+    {
+        printf("0");
+    }
 }
 
 static int main_eventHandler(phevEvent_t *event)
@@ -276,31 +292,46 @@ static int main_eventHandler(phevEvent_t *event)
             {
             case CMD_HEADLIGHTS:
             {
-                printf("Turning %s headlights\n", opts->operand_on ? "ON" : "OFF");
+                if (!opts->numerical)
+                {
+                    printf("Turning %s headlights\n", opts->operand_on ? "ON" : "OFF");    
+                }
                 phev_headLights(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_PARKING_LIGHTS:
             {
-                printf("Turning %s parking lights\n", opts->operand_on ? "ON" : "OFF");
+                if (!opts->numerical)
+                {
+                    printf("Turning %s parking lights\n", opts->operand_on ? "ON" : "OFF");    
+                }
                 phev_parkingLights(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_AIRCON:
             {
-                printf("Turning air conditioning %s\n", opts->operand_on ? "ON" : "OFF");
+                if (!opts->numerical)
+                {
+                    printf("Turning air conditioning %s\n", opts->operand_on ? "ON" : "OFF");
+                }
                 phev_airCon(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_UPDATE:
             {
-                printf("Update All\n");
+                if (!opts->numerical)
+                {
+                    printf("Update All\n");    
+                }
                 phev_updateAll(event->ctx, operationCallback);
                 break;
             }
             case CMD_AIRCON_MODE:
             {
-                printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
+                if (!opts->numerical)
+                {
+                    printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);    
+                }
                 if (opts->verbose)
                 {
                     printf("Car Model: %d\n", opts->carModel);
@@ -319,6 +350,10 @@ static int main_eventHandler(phevEvent_t *event)
     }
     case PHEV_ECU_VERSION:
     {
+        if (!opts->numerical)
+                {
+                    
+                }
         if (opts->verbose)
         {
             printf("ECU Version : %s\n", event->data);
