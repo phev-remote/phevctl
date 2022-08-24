@@ -2,3 +2,5 @@ build
 .vscode
 *.txt
 CMakeLists.txt
+BUILD.md
+
