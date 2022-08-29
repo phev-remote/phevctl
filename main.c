@@ -24,13 +24,29 @@ int wait_for_regs = 0;
 
 static void operationCallback(phevCtx_t *ctx, void *value)
 {
-    printf("Operation successful\n");
+    phev_args_opts_t *opts = (phev_args_opts_t *)phev_getUserCtx(ctx);
+    if (!opts->numerical)
+    {
+        printf("Operation successful\n");
+    }
+    else
+    {
+        printf("0");
+    }
     phev_exit(ctx);
     exit(0);
 }
 static void operationCallbackNoExit(phevCtx_t *ctx, void *value)
-{
-    printf("Operation successful\n");
+{ 
+    phev_args_opts_t *opts = (phev_args_opts_t *)phev_getUserCtx(ctx);
+    if (!opts->numerical)
+    {
+        printf("Operation successful\n");
+    }
+    else
+    {
+        printf("0");
+    }
 }
 
 static int main_eventHandler(phevEvent_t *event)
@@ -70,7 +86,14 @@ static int main_eventHandler(phevEvent_t *event)
                 {
                     return 0;
                 }
-                printf("Battery level %d\n", batt);
+                if (opts->numerical)
+                {
+                    printf("%d", batt);
+                }
+                else {
+                    printf("Battery level %d\n", batt);
+                }
+                
                 exit(0);
             }
             break;
@@ -80,13 +103,29 @@ static int main_eventHandler(phevEvent_t *event)
             if (event->reg == KO_WF_DOOR_STATUS_INFO_REP_EVR)
             {
                 int islocked = phev_isLocked(ctx);
-                if (islocked < 0)
+                if (islocked < 0 && !opts->numerical)
                 {
-                printf("Doors in UNKNOWN STATE\n");
-                } else if (islocked == 1){
-                printf("Doors are Locked\n");
-                } else{
-                printf("Doors are UnLocked\n");
+                    printf("Doors in UNKNOWN STATE\n");
+                } 
+                else if (islocked < 0 && opts->numerical)
+                {
+                    printf("-1");
+                } 
+                else if (islocked == 1 && !opts->numerical)
+                {
+                    printf("Doors are Locked\n");
+                }
+                else if (islocked == 1 && opts->numerical)
+                {
+                    printf("1");
+                }
+                else if (islocked == 0 && !opts->numerical)
+                {   
+                    printf("Doors are UnLocked\n");
+                }
+                else
+                {
+                    printf("0");
                 }
                 exit(0);
             }
@@ -101,10 +140,19 @@ static int main_eventHandler(phevEvent_t *event)
                 {
                     return 0;
                 }
-                 if (chargeStatus == 1)
-                 {
-                   printf("Charging...\n");
-                 } else {
+                if (chargeStatus == 1 && !opts->numerical)
+                {
+                    printf("Charging\n");
+                } 
+                else if (chargeStatus == 1 && opts->numerical) 
+                {
+                    printf("1");
+                }
+                else if (chargeStatus == 0 && opts->numerical)
+                {
+                    printf("0");
+                }
+                else {
                    printf("Not charging\n");
                  }
                 exit(0);
@@ -115,9 +163,46 @@ static int main_eventHandler(phevEvent_t *event)
         {
             if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
             {
+                printf("HVAC Status\n");
                 phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
                 printf("Operating:%d\n", ph->operating);
                 printf("mode:%d\n", ph->mode);
+                exit(0);
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS_OPERATING:
+        {
+            if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
+            {
+                phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
+                if (!opts->numerical)
+                {
+                    printf("HVAC Status Operating\n");
+                    printf("Operating:%d\n", ph->operating);
+                }
+                else 
+                {
+                    printf("%d", ph->operating);
+                } 
+                exit(0);
+            }
+            break;
+        }
+        case CMD_HVAC_STATUS_MODE:
+        {
+            if (event->reg == KO_WF_TM_AC_STAT_INFO_REP_EVR)
+            {
+                phevServiceHVAC_t * ph =  phev_HVACStatus(ctx);
+                if (!opts->numerical)
+                {
+                    printf("HVAC Status Mode\n");
+                    printf("mode:%d\n", ph->mode);
+                }
+                else 
+                {
+                    printf("%d", ph->mode);
+                }
                 exit(0);
             }
             break;
@@ -131,7 +216,14 @@ static int main_eventHandler(phevEvent_t *event)
                 {
                     return 0;
                 }
-                printf("Remaining %d\n", remainingChargeStatus);
+                if (!opts->numerical)
+                {
+                    printf("Remaining %d\n", remainingChargeStatus);
+                }
+                else 
+                {
+                    printf("%d", remainingChargeStatus);
+                }
                 exit(0);
             }
             break;
@@ -159,7 +251,11 @@ static int main_eventHandler(phevEvent_t *event)
                 wait_for_regs++;
                 return 0;
             }
-            printf("Get register %d : ", opts->reg_operand);
+            if (!opts->numerical)
+            {
+                printf("Get register %d : ", opts->reg_operand);
+            }
+            
             for (int i = 0; i < reg->length; i++)
             {
                 printf("%02X ", reg->data[i]);
@@ -198,31 +294,46 @@ static int main_eventHandler(phevEvent_t *event)
             {
             case CMD_HEADLIGHTS:
             {
-                printf("Turning %s headlights\n", opts->operand_on ? "ON" : "OFF");
+                if (!opts->numerical)
+                {
+                    printf("Turning %s headlights\n", opts->operand_on ? "ON" : "OFF");    
+                }
                 phev_headLights(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_PARKING_LIGHTS:
             {
-                printf("Turning %s parking lights\n", opts->operand_on ? "ON" : "OFF");
+                if (!opts->numerical)
+                {
+                    printf("Turning %s parking lights\n", opts->operand_on ? "ON" : "OFF");    
+                }
                 phev_parkingLights(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_AIRCON:
             {
-                printf("Turning air conditioning %s\n", opts->operand_on ? "ON" : "OFF");
+                if (!opts->numerical)
+                {
+                    printf("Turning air conditioning %s\n", opts->operand_on ? "ON" : "OFF");
+                }
                 phev_airCon(event->ctx, opts->operand_on, operationCallback);
                 break;
             }
             case CMD_UPDATE:
             {
-                printf("Update All\n");
+                if (!opts->numerical)
+                {
+                    printf("Update All\n");    
+                }
                 phev_updateAll(event->ctx, operationCallback);
                 break;
             }
             case CMD_AIRCON_MODE:
             {
-                printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);
+                if (!opts->numerical)
+                {
+                    printf("Switching air conditioning mode to %d for %d mins\n", opts->operand_mode, opts->operand_time);    
+                }
                 if (opts->verbose)
                 {
                     printf("Car Model: %d\n", opts->carModel);
@@ -243,6 +354,10 @@ static int main_eventHandler(phevEvent_t *event)
     }
     case PHEV_ECU_VERSION:
     {
+        if (!opts->numerical)
+                {
+                    
+                }
         if (opts->verbose)
         {
             printf("ECU Version : %s\n", event->data);
@@ -291,16 +406,21 @@ int main(int argc, char *argv[])
         printf("ERROR %s\n", opts->error_message);
         exit(1);
     }
+    
     phevSettings_t settings = {
         .host = opts->host,
         .mac = opts->mac,
         .port = opts->port,
+        .numerical = opts->numerical,       
         .registerDevice = (opts->command == CMD_REGISTER ? true : false),
         .handler = main_eventHandler,
         .ctx = (void *)opts,
     };
 
-    print_intro();
+    if (!opts->numerical)
+    {
+        print_intro();
+    }
 
     if (opts->command == CMD_REGISTER)
     {
