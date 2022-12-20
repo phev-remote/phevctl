@@ -292,6 +292,7 @@ int main(int argc, char *argv[])
     phevSettings_t settings = {
         .host = opts->host,
         .mac = opts->mac,
+        .numerical = true,
         .port = opts->port,
         .registerDevice = (opts->command == CMD_REGISTER ? true : false),
         .handler = main_eventHandler,
