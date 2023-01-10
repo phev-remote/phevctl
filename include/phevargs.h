@@ -19,7 +19,7 @@
 #define HVAC_STATUS_OPERATING "hvacoperating"
 #define HVAC_STATUS_MODE "hvacmode"
 #define UPDATE "update"
-#define REMAINING_CHARGING_STATUS "remaningchargestatus"
+#define REMAINING_CHARGING_STATUS "remainingchargestatus"
 #define AIRCON "aircon"
 #define AIRCON_MODE "acmode"
 #define TEST_MODE "test"
