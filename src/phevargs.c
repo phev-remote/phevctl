@@ -306,9 +306,9 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
             if (strlen(arg) == 17)
             {
                 uint8_t *mac = malloc(6);
-                sscanf(arg, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                 if(mac != NULL)
                 {
+                    sscanf(arg, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                     opts->mac = mac;
                 } else {
                     opts->error = true;
