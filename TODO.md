@@ -38,10 +38,10 @@ following the same approach used for phevcore. Each phase is one PR.
 - [x] Add `LICENSE` file (MIT)
 - [x] Rename default branch `master` → `main`
 
-## Phase 4 — Code cleanup
+## Phase 4 — Code cleanup ✓
 
-- [ ] Move `main.c` and `decode.c` into `src/`
+- [x] Move `main.c` and `decode.c` into `src/`
 - [x] Evaluate and remove `MQTT_PAHO` conditional compilation — removed (dead code)
 - [x] Clean up include paths (use subdirectory-prefixed style)
-- [ ] Remove dead/commented-out code in `decode.c`
-- [ ] Fix version string inconsistency (`main.c` says 0.0.1, README says 0.1, tag is v0.1)
+- [x] Remove dead/commented-out code in `decode.c` and `main.c`
+- [x] Fix version string inconsistency — `VERSION` now set via CMake `target_compile_definitions` from `PROJECT_VERSION` (0.1.0)

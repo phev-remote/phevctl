@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
     while (read != -1)
     {
         size_t numBytes = read >> 1;
-        // printf("Line length %d number of bytes %d\n",read, numBytes);
         int j = 0;
         message = malloc(numBytes);
         for (int i = 0; i < read - 1; i += 2)
@@ -60,7 +59,6 @@ int main(int argc, char *argv[])
             strncpy(byteStr, line + i, 2);
             uint8_t num = (u_int8_t)strtol(byteStr, NULL, 16);
             message[j++] = num;
-            // printf("%02X ", num);
         }
         uint8_t *data = NULL;
         uint8_t xor = message[2];
@@ -86,29 +84,19 @@ int main(int argc, char *argv[])
             }
         }
 
-        //int ret = phev_core_decodeMessage(message,numBytes,&phevMsg);
         if (data)
         {
-            //if(data[0] > 0xf3)
+            printf(">> ");
+            for (int i = 0; i < numBytes; i++)
             {
-                printf(">> ");
-                for (int i = 0; i < numBytes; i++)
-                {
-                    printf("%02X ", message[i]);
-                }
-                //printf("<< Expected Chksum %02X Actual Chksum %02X Mask %02X XOR %02X Command %02X Length %d Type %d Register %02X Data * ",phev_core_checksum(data),data[data[1] +1],mask,xor,data[0],data[1],data[2],data[3]);
-                printf("<< >> ");
-                for (int i = 0; i < numBytes; i++)
-                {
-                    printf(" %02X", data[i]);
-                }
-                printf("\n");
-            } //else
-            {
-                //printf("Message not decoded");
+                printf("%02X ", message[i]);
             }
-
-            //printf("\n");
+            printf("<< >> ");
+            for (int i = 0; i < numBytes; i++)
+            {
+                printf(" %02X", data[i]);
+            }
+            printf("\n");
         }
         read = getline(&line, &len, fp);
     }

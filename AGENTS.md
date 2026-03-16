@@ -12,9 +12,9 @@ protocol implemented in [phevcore](https://github.com/phev-remote/phevcore).
 
 ```
 .
-├── main.c                  # Main executable (phevctl)
-├── decode.c                # Decode utility executable
 ├── src/
+│   ├── main.c              # Main executable (phevctl)
+│   ├── decode.c            # Decode utility executable
 │   └── phevargs.c          # Argument parsing (argp)
 ├── include/
 │   └── phevargs.h          # Public header for phevargs
@@ -94,8 +94,6 @@ configure, build, and test using the `ci` preset.
 
 ## Known quirks
 
-- `main.c` defines `VERSION "0.0.1"` but the README historically said 0.1
-  and the git tag is v0.1 — version needs reconciliation (tracked in TODO.md)
 - The `test_phev_pipe` suite (phevcore) has ~7s timeout for connection retries
 - argp normally calls `exit()` on parse errors; we pass
   `ARGP_NO_EXIT | ARGP_NO_ERRS` to `argp_parse` so tests can verify error cases

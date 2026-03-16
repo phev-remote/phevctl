@@ -5,7 +5,6 @@
 #include <string.h>
 #include <pthread.h>
 
-#define VERSION "0.0.1"
 #define LOG_LEVEL LOG_NONE
 
 #include <phev/phev.h>
@@ -351,10 +350,6 @@ static int main_eventHandler(phevEvent_t *event)
     }
     case PHEV_ECU_VERSION:
     {
-        if (!opts->numerical)
-                {
-                    
-                }
         if (opts->verbose)
         {
             printf("ECU Version : %s\n", event->data);
@@ -383,7 +378,6 @@ void print_intro()
 {
     printf("Mitsubishi Outlander PHEV Remote CLI - ");
     printf("Designed and coded by Jamie Nuttall 2020\nMIT License\n");
-    //printf("Type 'x' then enter to quit.\n");
     printf("Wait...\n");
 }
 
@@ -447,7 +441,6 @@ int main(int argc, char *argv[])
         exit(0);
     }
     int ret = pthread_create(&main, NULL, main_thread, (void *)ctx);
-    //main_thread((void *) ctx);
     char ch;
     do
     {

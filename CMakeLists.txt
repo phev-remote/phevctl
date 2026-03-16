@@ -22,7 +22,7 @@ find_library(ARGP_LIB argp)
 
 # ---------- phevctl executable ----------
 add_executable(phevctl
-    main.c
+    src/main.c
     src/phevargs.c
 )
 
@@ -31,12 +31,15 @@ target_include_directories(phevctl PRIVATE
 )
 
 target_link_libraries(phevctl PRIVATE phev pthread)
+target_compile_definitions(phevctl PRIVATE
+    VERSION="${PROJECT_VERSION}"
+)
 if(ARGP_LIB)
     target_link_libraries(phevctl PRIVATE ${ARGP_LIB})
 endif()
 
 # ---------- decode executable ----------
-add_executable(decode decode.c)
+add_executable(decode src/decode.c)
 
 target_include_directories(decode PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
