@@ -1,206 +1,65 @@
-# Mitsubishi PHEV command line interface
+# phevctl
 
-This is a command line interface developed to control the Mitsubish Outlander PHEV via the WiFi interface.
-It uses the phev library found [here](https://github.com/phev-remote/phevcore).
+[![CI](https://github.com/phev-remote/phevctl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/phev-remote/phevctl/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Version 0.1**
+Command-line tool for controlling a Mitsubishi Outlander PHEV over WiFi.
 
-**Updates**
-ECU 0.3.0.0 version now supported (Long password version MY18)
-Registration is now more robust
-Supports setting the aircon mode, cool, heat or windscreen.  You can also set thw time to 10,20 and 30 minutes**
+## Dependencies
 
-phevctl acmode cool 10
+All fetched automatically via CMake FetchContent:
 
-## License
+- [phevcore](https://github.com/phev-remote/phevcore) (transitively brings cJSON and msg-core)
+- [greatest](https://github.com/silentbicycle/greatest) (tests only)
 
-MIT License
+## Build
 
->  Copyright (c) 2019 Jamie Nuttall
->
->  Permission is hereby granted, free of charge, to any person obtaining a copy
->  of this software and associated documentation files (the "Software"), to deal
->  in the Software without restriction, including without limitation the rights
->  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
->  copies of the Software, and to permit persons to whom the Software is
->  furnished to do so, subject to the following conditions:
->
->  The above copyright notice and this permission notice shall be included in
->  all copies or substantial portions of the Software.
->
->  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
->  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
->  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
->  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
->  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
->  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
->  THE SOFTWARE.
-
-## Building
-The quickest way to get started is using the existing docker image ...
+```bash
+cmake --preset dev
+cmake --build --preset dev
 ```
-docker run papawattu/phevctl --help
-```
-Or if you'd prefer to build you own image. Or if you run it on OrangePi zero
 
-### Docker build
+## Test
 
-Ensure docker is running
+```bash
+ctest --preset dev
+```
 
-```
-docker version
-```
-You should see something like this :-
-```
-Client: Docker Engine - Community
- Version:           19.03.1
- API version:       1.40
- Go version:        go1.12.5
- Git commit:        74b1e89
- Built:             Thu Jul 25 21:17:08 2019
- OS/Arch:           windows/amd64
- Experimental:      false
+## Install
 
-Server: Docker Engine - Community
- Engine:
-  Version:          19.03.1
-  API version:      1.40 (minimum version 1.12)
-  Go version:       go1.12.5
-  Git commit:       74b1e89
-  Built:            Thu Jul 25 21:17:52 2019
-  OS/Arch:          linux/amd64
-  Experimental:     false
- containerd:
-  Version:          v1.2.6
-  GitCommit:        894b81a4b802e4eb2a91d1ce216b8817763c29fb
- runc:
-  Version:          1.0.0-rc8
-  GitCommit:        425e105d5a03fabd737a126ad93d62a9eeede87f
- docker-init:
-  Version:          0.18.0
-  GitCommit:        fec3683
+```bash
+cmake --preset release
+cmake --build --preset release
+sudo cmake --install build/release
 ```
-Check out this repository by cloning
-```
-git clone https://github.com/phev-remote/phevctl
-```
-Then CD into the directory and build the image.
-```
-cd phevctl
-docker build -t <replace with your docker user>/phevctl .
-```
-You should then have the image built and you can run as follows :-
-```
-docker run <replace with your docker user>/phevctl --help
-```
-You should see the following help.
-```
-Usage: phevctl [OPTION...] register
-  or:  phevctl [OPTION...] battery
-  or:  phevctl [OPTION...] chargestatus
-  or:  phevctl [OPTION...] lockstatus
-  or:  phevctl [OPTION...] hvac
-  or:  phevctl [OPTION...] hvacoperating 
-  or:  phevctl [OPTION...] hvacmode
-  or:  phevctl [OPTION...] remaningchargestatus
-  or:  phevctl [OPTION...] update
-  or:  phevctl [OPTION...] aircon [on|off]
-  or:  phevctl [OPTION...] acmode [heat|cool|windscreen] [10|20|30]
-  or:  phevctl [OPTION...] --car-model=2019 acmode [heat|cool|windscreen] [10|20|30]
-  or:  phevctl [OPTION...] headlights [on|off]
-  or:  phevctl [OPTION...] parkinglights [on|off]
-  or:  phevctl [OPTION...] monitor
-  or:  phevctl [OPTION...] get <register>
 
+## Docker
 
-Program to control the car via the remote WiFi interface.  Requires this device
-to be connected to the REMOTE**** access point with a valid IP address, which
-is on the 192.168.8.x subnet.
-
-THIS PROGRAM COMES WITH NO WARRANTY ANY DAMAGE TO THE CAR OR ANY OTHER
-EQUIPMENT IS AT THE USERS OWN RISK.
-
-  -c, --car-model=<YEAR>     Model Year.
-  -m, --mac=<MAC ADDRESS>    MAC address.
-  -v, --verbose              Verbose output
-  -?, --help                 Give this help list
-      --usage                Give a short usage message
-
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
-
-Report bugs to jamie@wattu.com.
+```bash
+docker build -t phevctl .
+docker run --rm --network host phevctl <command>
 ```
-## Building manually
-
-Please see the [BUILD.md](https://github.com/phev-remote/phevctl/blob/master/BUILD.md).
 
 ## Usage
 
-Make sure your device is in range of the cars WiFI and connect to the access point, which starts __REMOTExxxxx__.  Enter the password as you would normally do on the app, then check the IP address you're device has been assigned.
-Locate your Wi-Fi details and you should have a line that says your IP address.
+Connect to the car's WiFi access point, then:
 
-### Windows command prompt
-```
-ipconfig
-...
-IPv4 Address. . . . . . . . . . . : 192.168.8.47
-```
-### Linux
-```
-ifconfig -a
-...
-wlan0:
-   inet 192.168.8.47
-```
+```bash
+# Show battery level
+phevctl battery
 
-## Registering your device
+# Turn headlights on/off
+phevctl headlights on
+phevctl headlights off
 
-As in with the official app the device needs to be registered with the car.
+# Start/stop air conditioning
+phevctl aircon on
+phevctl aircon off
 
-Firstly put your car into registration mode instructions [here](https://www.mitsubishi-motors.com/en/products/outlander_phev/app/remote/jizen.html)
-
-Then issue the following command.
-```
-docker run papawattu/phevctl register
-```
-You should see the message that the car is now registered.
-## Using commands
-You can then follow the help instructions to get the battery level and switch on and off the air conditioning and head lights.
+# Get help
+phevctl --help
 ```
 
-docker run papawattu/phevctl battery
+## License
 
-docker run papawattu/phevctl aircon on
-
-docker run papawattu/phevctl headlights on
-
-docker run papawattu/phevctl chargestatus
-docker run papawattu/phevctl lockstatus
-docker run papawattu/phevctl hvac
-docker run papawattu/phevctl remaningchargestatus
-docker run papawattu/phevctl update
-docker run papawattu/phevctl --car-model=2019 acmode heat 20
-
-```
-These commends can be used either with Docker or from the command line (if you build from source). 
-Another example:
-
-```
-./phevctl hvac         // Check AC status
-HVAC Status
-Operating:0
-mode:3
-
-/phevctl aircon on
-Turning air conditioning ON
-
-./phevctl hvac
-HVAC Status
-Operating:1
-mode:3			// 1=cool, 2=heat, 3=windscreen(defrost)
-
-./phevctl acmode cool 10
-Switching air conditioning mode to 1 for 10 mins
-```
-Have fun!!!
+[MIT](LICENSE)

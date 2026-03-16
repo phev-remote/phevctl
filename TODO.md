@@ -30,12 +30,12 @@ following the same approach used for phevcore. Each phase is one PR.
 - [x] Fix `argp_parse` to use `ARGP_NO_EXIT | ARGP_NO_ERRS` so tests don't abort on error cases
 - [x] Verify all 19 tests pass (17 original + 2 previously-dead)
 
-## Phase 3 — Documentation & polish
+## Phase 3 — Documentation & polish ✓
 
-- [ ] Rewrite `README.md` (concise, CI badge, current build/usage instructions)
-- [ ] Merge `BUILD.md` into README or remove
-- [ ] Add `AGENTS.md` with phevctl-specific conventions
-- [ ] Add `LICENSE` file (MIT — currently only in README text)
+- [x] Rewrite `README.md` (concise, CI badge, current build/usage instructions)
+- [x] Remove `BUILD.md` (obsolete manual build steps replaced by FetchContent)
+- [x] Add `AGENTS.md` with phevctl-specific conventions
+- [x] Add `LICENSE` file (MIT)
 - [x] Rename default branch `master` → `main`
 
 ## Phase 4 — Code cleanup
