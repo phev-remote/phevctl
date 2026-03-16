@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure
+      run: cmake --preset ci
+
+    - name: Build
+      run: cmake --build --preset ci
+
+    - name: Test
+      run: ctest --preset ci
