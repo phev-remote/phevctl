@@ -1,28 +1,18 @@
-find_package(unity)
+# ── Helper to define a test executable ──────────────────────────
+function(phevctl_add_test name source)
+    add_executable(${name} ${source})
+    target_link_libraries(${name} PRIVATE phevargs_lib)
+    target_include_directories(${name} PRIVATE
+        ${greatest_SOURCE_DIR}
+    )
+    add_test(NAME ${name} COMMAND ${name})
+endfunction()
 
-enable_testing()
-
-
-add_library(phevctl STATIC
+# ── Static library for code under test ─────────────────────────
+add_library(phevargs_lib STATIC
     ../src/phevargs.c
 )
+target_include_directories(phevargs_lib PUBLIC ../include)
 
-target_include_directories(phevctl PUBLIC ../include)
-
-add_library(test_runner OBJECT test_runner.c)
-
-target_link_libraries(test_runner
-    phevctl
-    unity
-)
-add_executable(test_phev_args test_phev_args.c $<TARGET_OBJECTS:test_runner>)
-target_link_libraries(test_phev_args
-    phevctl
-    unity
-)
-add_test(NAME phev_args COMMAND test_phev_args)
-
-
-
-
-
+# ── Per-suite test executables (all use greatest) ──────────────
+phevctl_add_test(test_phev_args test_phev_args.c)

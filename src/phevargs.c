@@ -355,14 +355,10 @@ static error_t phev_args_parse_opt(int key, char *arg, struct argp_state *state)
         if(opts->error)
         {
             opts->command = CMD_INVALID;
-            printf("\nERROR : %s\n",opts->error_message);
-            argp_usage(state);
         }
         if(phev_args_validate(state->arg_num,opts))
         {
             opts->command = CMD_INVALID;
-            printf("\nERROR : %s\n",opts->error_message);
-            argp_usage(state);
         }
         break;
     }
@@ -405,7 +401,7 @@ phev_args_opts_t * phev_args_parse(int argc, char *argv[])
     arguments->error = false;
     arguments->error_message = "";
 
-    argp_parse(&phev_args_argp, argc, argv, 0, 0, arguments);
+    argp_parse(&phev_args_argp, argc, argv, ARGP_NO_EXIT | ARGP_NO_ERRS, 0, arguments);
 
     return arguments;
 }

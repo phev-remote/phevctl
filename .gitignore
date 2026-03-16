@@ -1,6 +1,26 @@
-build
-.vscode
-*.txt
-CMakeLists.txt
-BUILD.md
+# Build output
+build/
+build-*/
 
+# Tool / editor state
+.cache/
+opencode.json
+
+# Core dumps
+core
+
+# IDE / editor
+.vscode/
+.devcontainer/
+.idea/
+*.swp
+*.swo
+*~
+
+# CMake
+CMakeUserPresets.json
+compile_commands.json
+
+# OS
+.DS_Store
+Thumbs.db

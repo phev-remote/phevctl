@@ -1,39 +1,59 @@
-project("Mitstubishi Outlander PHEV Adapter CLI" C)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.14)
+project(phevctl VERSION 0.1.0 LANGUAGES C)
 
-include(CTest)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
-option(MQTT_PAHO "Include MQTT Paho support (requires msg core to be compiled with Paho support)")
-
-set (CMAKE_C_STANDARD 11)
-if (UNIX)
-  add_definitions (-D__unix__)
+if(UNIX)
+    add_definitions(-D__unix__)
 endif()
 
-set(TARGET_GROUP production CACHE STRING "Group to build")
+# ---------- dependencies via FetchContent ----------
+include(FetchContent)
 
+FetchContent_Declare(phevcore
+    GIT_REPOSITORY https://github.com/phev-remote/phevcore.git
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(phevcore)
+
+# argp: part of glibc on Linux, needs a separate library on macOS/BSD
 find_library(ARGP_LIB argp)
-find_library(PHEV_LIB phev)
-find_library(MSG_CORE_LIB msg_core)
-find_library(CJSON_LIB cjson)
 
-if(MQTT_PAHO)
-    find_library(PAHO_LIB paho-mqtt3c-static REQUIRED)
-    set(CMAKE_C_FLAGS "-DMQTT_PAHO=true")
+# ---------- phevctl executable ----------
+add_executable(phevctl
+    main.c
+    src/phevargs.c
+)
+
+target_include_directories(phevctl PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(phevctl PRIVATE phev pthread)
+if(ARGP_LIB)
+    target_link_libraries(phevctl PRIVATE ${ARGP_LIB})
 endif()
-if(TARGET_GROUP STREQUAL production)
-    add_executable(phevctl main.c
-        src/phevargs.c
+
+# ---------- decode executable ----------
+add_executable(decode decode.c)
+
+target_include_directories(decode PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(decode PRIVATE phev)
+
+# ---------- tests ----------
+option(BUILD_TESTS "Build the test binaries" OFF)
+
+if(BUILD_TESTS)
+    FetchContent_Declare(greatest
+        GIT_REPOSITORY https://github.com/silentbicycle/greatest.git
+        GIT_TAG        v1.5.0
     )
-    add_executable(decode decode.c)
-    target_include_directories(phevctl PUBLIC include ${ARGP} /usr/local/include)
-    target_include_directories(decode PUBLIC include /usr/local/include)
-    target_link_libraries(phevctl "${PHEV_LIB}" "${MSG_CORE_LIB}" "${CJSON_LIB}" "${PAHO_LIB}" pthread "${ARGP_LIB}")
-    target_link_libraries(decode "${PHEV_LIB}" "${MSG_CORE_LIB}" "${CJSON_LIB}" )
-elseif(TARGET_GROUP STREQUAL test)
+    FetchContent_MakeAvailable(greatest)
+
+    enable_testing()
     add_subdirectory(test)
-ENDIF()
-
-
-
-
+endif()

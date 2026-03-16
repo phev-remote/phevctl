@@ -8,12 +8,9 @@
 #define VERSION "0.0.1"
 #define LOG_LEVEL LOG_NONE
 
-#include <phev.h>
+#include <phev/phev.h>
 #include "phevargs.h"
-#include "msg_utils.h"
-#ifdef MQTT_PAHO
-#include "msg_mqtt_paho.h"
-#endif
+#include <msg/msg_utils.h>
 
 char *remaining_args = NULL, num_remaining_args = 0;
 

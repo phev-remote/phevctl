@@ -1,2 +1,5 @@
-build
-test
+build/
+build-*/
+.git/
+.github/
+.cache/

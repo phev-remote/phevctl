@@ -1,0 +1,37 @@
+---
+# .clang-format — matches the existing phevctl coding style
+#
+# This file documents the project's conventions. It is NOT enforced
+# automatically; use it with editor integrations or manual runs of
+# clang-format when desired.
+
+Language: C
+BasedOnStyle: LLVM
+
+# 4-space indentation, no tabs
+IndentWidth: 4
+UseTab: Never
+
+# Allman (next-line) braces for functions and control statements
+BreakBeforeBraces: Allman
+
+# Pointer alignment: char * ptr (space on both sides)
+PointerAlignment: Middle
+
+# Keep one statement per line
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Space inside control keywords: if (...), switch (...), for (...)
+SpaceBeforeParens: ControlStatements
+
+# No strict column limit — existing code wraps pragmatically
+ColumnLimit: 0
+
+# Sort includes loosely; don't force strict alphabetical
+SortIncludes: Never
+
+# Designator-style struct initializers on separate lines
+Cpp11BracedListStyle: false
+...
